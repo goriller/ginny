@@ -1,2 +1,2 @@
 # irisa
-like koa, base on iris.
+Like koa, Base on iris.
