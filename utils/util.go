@@ -30,11 +30,7 @@ func GenerateID() (string, error) {
 // IsEmptyString 为空判断
 func IsEmptyString(text string) bool {
 	s := strings.TrimSpace(text)
-	if len(s) > 0 {
-		return false
-	}
-
-	return true
+	return len(s) <= 0
 }
 
 // IsSpaceOrEmpty 判断是否空字符串
@@ -65,11 +61,11 @@ func RemoveSliceElement(a []string, b string) []string {
 
 // DistinctStringSlice 切片去重
 func DistinctStringSlice(strList []string) []string {
-	distinctMap := make(map[string]bool, 0)
+	distinctMap := map[string]bool{}
 	var distinctList []string
 
 	for _, str := range strList {
-		if distinctMap[str] == true {
+		if distinctMap[str] {
 			continue
 		} else {
 			distinctMap[str] = true
