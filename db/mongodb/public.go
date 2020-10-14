@@ -66,13 +66,13 @@ func IsObjectIdHex(s string) bool {
 	return true
 }
 
-// MDB
-type MDB struct {
+// Collection
+type Collection struct {
 	CollectionName string // 集合名称
 }
 
-// RDB
-type IMDB interface {
+// ICollection
+type ICollection interface {
 	GetCollection() *mongo.Collection
 	FindOne(ctx context.Context, filter, result interface{}) error
 	FindAll(ctx context.Context, findOptions *options.FindOptions, filter interface{}, resSlice interface{}) error
@@ -83,20 +83,20 @@ type IMDB interface {
 	Delete(ctx context.Context, filter interface{}) (int64, error)
 }
 
-// NewMDB
-func NewMDB(name string) IMDB {
-	return &MDB{
+// NewCollection
+func NewCollection(name string) ICollection {
+	return &Collection{
 		CollectionName: name,
 	}
 }
 
 // GetCollection 获取文档对象
-func (m *MDB) GetCollection() *mongo.Collection {
+func (m *Collection) GetCollection() *mongo.Collection {
 	return DB().Collection(m.CollectionName)
 }
 
 // FindOne https://docs.mongodb.com/manual/reference/command/find/.
-func (m *MDB) FindOne(ctx context.Context, filter, result interface{}) error {
+func (m *Collection) FindOne(ctx context.Context, filter, result interface{}) error {
 	err := m.GetCollection().FindOne(ctx, filter).Decode(result)
 	if err != nil {
 		return err
@@ -112,7 +112,7 @@ func (m *MDB) FindOne(ctx context.Context, filter, result interface{}) error {
 // findOptions.SetSort(sort)
 // resSlice slice  此处需要通过反射把文档解析到切片,
 // 参考mgo  https://github.com/go-mgo/mgo/blob/v2-unstable/session.go
-func (m *MDB) FindAll(ctx context.Context, findOptions *options.FindOptions, filter interface{}, resSlice interface{}) error {
+func (m *Collection) FindAll(ctx context.Context, findOptions *options.FindOptions, filter interface{}, resSlice interface{}) error {
 	// 必须是切片
 	resultV := reflect.ValueOf(resSlice)
 	if resultV.Kind() != reflect.Ptr || resultV.Elem().Kind() != reflect.Slice {
@@ -181,7 +181,7 @@ func setStructValue(data interface{}, field string, value interface{}) {
 }
 
 // InsertOne 插入文档 返回插入id
-func (m *MDB) InsertOne(ctx context.Context, data interface{}) (interface{}, error) {
+func (m *Collection) InsertOne(ctx context.Context, data interface{}) (interface{}, error) {
 	preInsertData(data)
 	insertResult, err := m.GetCollection().InsertOne(ctx, data)
 	if err != nil {
@@ -191,7 +191,7 @@ func (m *MDB) InsertOne(ctx context.Context, data interface{}) (interface{}, err
 }
 
 // InsertMany 批量插入
-func (m *MDB) InsertMany(ctx context.Context, data []interface{}) ([]interface{}, error) {
+func (m *Collection) InsertMany(ctx context.Context, data []interface{}) ([]interface{}, error) {
 	for i := 0; i < len(data); i++ {
 		preInsertData(data[i])
 	}
@@ -203,7 +203,7 @@ func (m *MDB) InsertMany(ctx context.Context, data []interface{}) ([]interface{}
 }
 
 // UpdateOne 更新文档
-func (m *MDB) UpdateOne(ctx context.Context, filter, updateData interface{}) (int64, error) {
+func (m *Collection) UpdateOne(ctx context.Context, filter, updateData interface{}) (int64, error) {
 	update := bson.M{
 		"$set": updateData,
 	}
@@ -215,7 +215,7 @@ func (m *MDB) UpdateOne(ctx context.Context, filter, updateData interface{}) (in
 }
 
 // UpdateMany 更新多个文档
-func (m *MDB) UpdateMany(ctx context.Context, filter, updateData interface{}) (int64, error) {
+func (m *Collection) UpdateMany(ctx context.Context, filter, updateData interface{}) (int64, error) {
 	update := bson.M{
 		"$set": updateData,
 	}
@@ -227,7 +227,7 @@ func (m *MDB) UpdateMany(ctx context.Context, filter, updateData interface{}) (i
 }
 
 // DeleteMany 批量删除文档
-func (m *MDB) Delete(ctx context.Context, filter interface{}) (int64, error) {
+func (m *Collection) Delete(ctx context.Context, filter interface{}) (int64, error) {
 	result, err := m.GetCollection().DeleteMany(ctx, filter)
 	if err != nil {
 		return 0, err
