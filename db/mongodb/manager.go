@@ -23,7 +23,8 @@ type Manager struct {
 // NewManager 根据基础配置 初始化连接池管理器
 // Manager所有方法 均不对dbname进行trim、大小写等处理，由调用方检查 Manager保持入参原样
 func NewManager(config *Config) (*Manager, error) {
-	ctx, _ := context.WithTimeout(context.Background(), time.Duration(config.ConnectTimeout)*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(config.ConnectTimeout)*time.Second)
+	defer cancel()
 	client, err := mongo.Connect(ctx, clientOptions(config))
 	if err != nil {
 		return nil, err
@@ -84,7 +85,8 @@ func (m *Manager) Database(dbname string) *mongo.Database {
 
 // Close 释放所有连接池使用的资源。该函数应当很少用到
 func (m *Manager) Close() {
-	ctx, _ := context.WithTimeout(context.Background(), 15*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
 	if err := m.client.Disconnect(ctx); err != nil {
 		logger.Error(fmt.Sprintf("disconnect mongodb client error: %s", err.Error()))
 	}

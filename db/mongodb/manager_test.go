@@ -6,8 +6,15 @@ import (
 	"testing"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"gopkg.in/yaml.v2"
 )
+
+type book struct {
+	Title  string
+	Author string
+	Tags   primitive.A
+}
 
 // 连接测试：无认证模式、用户名密码模式。断点查看：clientOptions赋值
 func TestNewManager(t *testing.T) {
@@ -27,11 +34,12 @@ func TestNewManager(t *testing.T) {
 	}
 
 	test1Coll := mgr.DB().Collection("test1")
-	insertRes, err := test1Coll.InsertOne(context.Background(), bson.D{
-		{"title", "The Polyglot Developer Podcast"},
-		{"author", "Nic Raboy"},
-		{"tags", bson.A{"development", "programming", "coding"}},
-	})
+	doc := &book{
+		Title:  "The Polyglot Developer Podcast",
+		Author: "Nic Raboy",
+		Tags:   bson.A{"development", "programming", "coding"},
+	}
+	insertRes, err := test1Coll.InsertOne(context.Background(), &doc)
 	if err != nil {
 		t.Fatal(err)
 	}
