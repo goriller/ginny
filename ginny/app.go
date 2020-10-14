@@ -10,13 +10,17 @@ package ginny
 import (
 	"git.code.oa.com/linyyyang/ginny/logger"
 	"git.code.oa.com/linyyyang/ginny/middleware"
+	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
+// Application
 type Application struct {
 	*gin.Engine
 }
 
+// New
 func New(userMiddlewares ...gin.HandlerFunc) *Application {
 	engine := gin.New()
 	engine.Use(middleware.BenchmarkLog(), middleware.Recovery(logger.DefaultLogger, true),
@@ -24,4 +28,17 @@ func New(userMiddlewares ...gin.HandlerFunc) *Application {
 	engine.Use(userMiddlewares...)
 
 	return &Application{engine}
+}
+
+// Listen 支持优雅重启
+func Listen(host, port, mode string, router *Application) {
+	if mode == "release" {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
+	err := endless.ListenAndServe(host+":"+port, router)
+	if err != nil {
+		logger.Error("mis server start err %v ", zap.Error(err))
+	}
 }
