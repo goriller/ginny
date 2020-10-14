@@ -2,14 +2,13 @@ package mongodb
 
 import (
 	"context"
+	"encoding/hex"
 	"errors"
 	"reflect"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
-
 	"go.mongodb.org/mongo-driver/bson/primitive"
-
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -18,6 +17,54 @@ var (
 	// ErrMustSlice result argument must be a slice address
 	ErrMustSlice = errors.New("result argument must be a slice address")
 )
+
+// ObjectID type
+type ObjectID primitive.ObjectID
+
+// MDoc mongo bson doc
+type MDoc primitive.M
+
+// DDoc mongo bson doc
+type DDoc primitive.D
+
+// ADoc mongo bson doc
+type ADoc primitive.A
+
+// Hex
+func Hex(s ObjectID) string {
+	return hex.EncodeToString([]byte(string(s[:])))
+}
+
+// NewObjectID 生成ObjectID
+func NewObjectID() ObjectID {
+	return ObjectID(primitive.NewObjectID())
+}
+
+// NewObjectIDFromTimestamp 根据时间戳生成ObjectID
+func NewObjectIDFromTimestamp(t time.Time) ObjectID {
+	return ObjectID(primitive.NewObjectIDFromTimestamp(t))
+}
+
+// ObjectIdHex returns an ObjectId from the provided hex representation.
+// Calling this function with an invalid hex representation will
+// cause a runtime panic. See the IsObjectIdHex function.
+func ObjectIDFromHex(s string) ObjectID {
+	oid, _ := primitive.ObjectIDFromHex(s)
+	return ObjectID(oid)
+}
+
+// IsObjectIdHex returns whether s is a valid hex representation of
+// an ObjectId. See the ObjectIdHex function.
+func IsObjectIdHex(s string) bool {
+	b, err := hex.DecodeString(s)
+	if err != nil {
+		return false
+	}
+	if len(b) != 12 {
+		return false
+	}
+	return true
+}
 
 // MDB
 type MDB struct {
