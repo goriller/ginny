@@ -15,7 +15,7 @@ import (
 
 type Application struct {
 	*gin.Engine
-	Context *gin.Context
+	*gin.Context
 }
 
 func New(userMiddlewares ...gin.HandlerFunc) *Application {
