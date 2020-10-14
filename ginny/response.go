@@ -9,12 +9,12 @@ import (
 // HTTPResponseResult Common reponse
 type HTTPResponseResult struct {
 	Status  int         `json:"-"` //HTTP Status
-	Code    Code        `json:"code" format:"int"`
+	Code    ErrCode     `json:"code" format:"int"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"` //`json:"data,omitempty"`不忽略字段输出null,方便调用方判断
 	Err     error       `json:"-"`    //错误
 
-	codeMap map[Code]string `json:"-"` //项目自定义错误信息
+	codeMap map[ErrCode]string `json:"-"` //项目自定义错误信息
 }
 
 // Error get error
@@ -83,7 +83,7 @@ func ResponseSuccess(ctx *gin.Context, data interface{}) {
 
 // ResponseError
 //
-// options: [code Code, message string, status int]
+// options: [code ErrCode, message string, status int]
 func ResponseError(ctx *gin.Context, err error, options ...interface{}) {
 	resp := NewResultBuilder()
 	resp.Status(http.StatusOK).Code(failed)
@@ -142,7 +142,7 @@ func pickOptions(resp *ResultBuilder, options []interface{}) {
 				continue
 			}
 			resp.Status(c)
-		} else if c, ok := options[i].(Code); ok {
+		} else if c, ok := options[i].(ErrCode); ok {
 			resp.Code(c)
 		} else if c, ok := options[i].(string); ok {
 			resp.Message(c)
@@ -156,7 +156,7 @@ type ResultBuilder struct {
 }
 
 // NewResultBuilder get instances of ResultBuilder
-func NewResultBuilder(m ...map[Code]string) *ResultBuilder {
+func NewResultBuilder(m ...map[ErrCode]string) *ResultBuilder {
 	result := &HTTPResponseResult{
 		codeMap: nil,
 	}
@@ -167,8 +167,8 @@ func NewResultBuilder(m ...map[Code]string) *ResultBuilder {
 	return b
 }
 
-// Code setter
-func (b *ResultBuilder) Code(code Code) *ResultBuilder {
+// ErrCode setter
+func (b *ResultBuilder) Code(code ErrCode) *ResultBuilder {
 	b.result.Code = code
 	return b
 }
