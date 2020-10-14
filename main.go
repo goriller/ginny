@@ -1,9 +1,9 @@
 package main
 
 import (
-	. "Ginny/ginny"
 	"errors"
-	"time"
+
+	"git.code.oa.com/linyyyang/ginny/ginny"
 )
 
 func test() error {
@@ -13,12 +13,7 @@ func test() error {
 var err error
 
 func main() {
-	e := test()
+	app := ginny.New()
 
-	DefaultLogger.Trace(time.Now(), e)
-	DefaultLogger.Info("aaa")
-	DefaultLogger.Warn("aaa")
-	DefaultLogger.Error("aaa", err)
-
-	conf := NewConfig(&Options{Feeder()})
+	app.Use()
 }
