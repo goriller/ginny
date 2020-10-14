@@ -12,7 +12,6 @@ import (
 	"git.code.oa.com/linyyyang/ginny/middleware"
 	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
 )
 
 // Application
@@ -31,7 +30,7 @@ func New(userMiddlewares ...gin.HandlerFunc) *Application {
 }
 
 // Listen 支持优雅重启
-func Listen(host, port, mode string, router *Application) {
+func Listen(host, port, mode string, router *Application) error {
 	if mode == "release" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
@@ -39,6 +38,7 @@ func Listen(host, port, mode string, router *Application) {
 	}
 	err := endless.ListenAndServe(host+":"+port, router)
 	if err != nil {
-		logger.Error("mis server start err %v ", zap.Error(err))
+		return err
 	}
+	return nil
 }
