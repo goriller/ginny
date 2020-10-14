@@ -30,4 +30,5 @@ func SetContext(origin interface{}, ctx context.Context) context.Context {
 		kv = append(kv, k, v)
 	}
 	return metadata.AppendToOutgoingContext(ctx, kv...)
+
 }

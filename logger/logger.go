@@ -14,19 +14,19 @@ import (
 )
 
 // Colors
-const (
-	Reset       = "\033[0m"
-	Red         = "\033[31m"
-	Green       = "\033[32m"
-	Yellow      = "\033[33m"
-	Blue        = "\033[34m"
-	Magenta     = "\033[35m"
-	Cyan        = "\033[36m"
-	White       = "\033[37m"
-	MagentaBold = "\033[35;1m"
-	RedBold     = "\033[31;1m"
-	YellowBold  = "\033[33;1m"
-)
+//const (
+//	Reset       = "\033[0m"
+//	Red         = "\033[31m"
+//	Green       = "\033[32m"
+//	Yellow      = "\033[33m"
+//	Blue        = "\033[34m"
+//	Magenta     = "\033[35m"
+//	Cyan        = "\033[36m"
+//	White       = "\033[37m"
+//	MagentaBold = "\033[35;1m"
+//	RedBold     = "\033[31;1m"
+//	YellowBold  = "\033[33;1m"
+//)
 
 const (
 	// log key 这些字段是通用的，与具体协议无关

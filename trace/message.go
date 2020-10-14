@@ -2,13 +2,25 @@ package trace
 
 import (
 	"context"
+	"math/rand"
 	"time"
 
-	"git.code.oa.com/linyyyang/ginny/utils"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
+
+var (
+	rnd     *rand.Rand
+	n       = 20
+	charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
+)
+
+func init() {
+	rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
+}
+
+type msgStr string
 
 const (
 	// KeyMessage 存放message的key，协议无关，也会用在grpc请求的context
@@ -62,7 +74,8 @@ func CtxMessage(ctx context.Context) *Message {
 	msg, ok := val.(*Message)
 	if !ok {
 		msg = &Message{}
-		ctx = context.WithValue(ctx, KeyMessage, msg)
+		key := msgStr(KeyMessage)
+		ctx = context.WithValue(ctx, key, msg)
 		msg.Context = ctx
 	}
 	return msg
@@ -79,16 +92,20 @@ func (m *Message) TraceFields() []zapcore.Field {
 //MessageFromCtx msg from context
 func MessageFromCtx(ctx interface{}) *Message {
 	var msg *Message
-	switch ctx.(type) {
+	switch t := ctx.(type) {
 	case *gin.Context:
+		_ = t
 		ctx := ctx.(*gin.Context)
 		msg = GinMessage(ctx)
 	case context.Context:
+		_ = t
 		ctx := ctx.(context.Context)
 		msg = CtxMessage(ctx)
 	default:
+		_ = t
 		panic("invalid context to get message")
 	}
+
 	return msg
 }
 
@@ -104,9 +121,12 @@ func NewMessage(logger *zap.Logger, reqID, username, deviceID string, context in
 
 //RandReqID rand reqID
 func RandReqID() string {
-	id, err := utils.GenerateID()
-	if err != nil {
+	if n <= 0 {
 		return ""
 	}
-	return id
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = charSet[rnd.Intn(len(charSet))]
+	}
+	return string(b)
 }
