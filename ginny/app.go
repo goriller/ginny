@@ -15,6 +15,7 @@ import (
 
 type Application struct {
 	*gin.Engine
+	Context *gin.Context
 }
 
 func New(userMiddlewares ...gin.HandlerFunc) *Application {
@@ -23,5 +24,5 @@ func New(userMiddlewares ...gin.HandlerFunc) *Application {
 		middleware.Trace())
 	engine.Use(userMiddlewares...)
 
-	return &Application{engine}
+	return &Application{engine, &gin.Context{}}
 }
