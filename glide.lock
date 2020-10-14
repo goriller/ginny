@@ -1,9 +1,0 @@
-hash: c2a47f34d6cbf638ea248c3e5858e7839e7ae0e104229c1e8c880035432a6c11
-updated: 2019-01-28T20:06:13.955177+08:00
-imports:
-- name: github.com/kataras/iris
-  version: 4cfdc6418532f49ff0159045a06080db0457eb55
-  subpackages:
-  - middleware/logger
-  - middleware/recover
-testImports: []
