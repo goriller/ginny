@@ -54,10 +54,9 @@ func TestTransactionManager_QueryContext(t *testing.T) {
 	var names []string
 	for rows.Next() {
 		var tmp string
-		rows.Scan(&tmp)
+		_ = rows.Scan(&tmp)
 		names = append(names, tmp)
 	}
-
 	fmt.Println(names)
 }
 

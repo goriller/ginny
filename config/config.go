@@ -11,6 +11,7 @@ import (
 	"log"
 
 	"github.com/gookit/config/v2"
+	"github.com/gookit/config/v2/json"
 	"github.com/gookit/config/v2/yaml"
 	"go.uber.org/zap"
 )
@@ -18,23 +19,21 @@ import (
 var (
 	conf     map[string]interface{}
 	confPath string
-)
-
-type parserType string
-
-const (
-	JSON parserType = "json"
-	YAML parserType = "yaml"
+	jsonConf bool
 )
 
 // Init
 func Init(fileName ...string) {
 	if len(fileName) == 0 {
 		confPath = "./config/config.yaml"
+		jsonConf = false
 	} else {
 		confPath = fileName[0]
+		if fileName[1] != "" {
+			jsonConf = true
+		}
 	}
-	loadConfig(confPath, false)
+	loadConfig(confPath, jsonConf)
 }
 
 // GetConfig
@@ -46,8 +45,12 @@ func GetConfig() map[string]interface{} {
 func loadConfig(filePath string, isJson bool) {
 	// parse env
 	config.WithOptions(config.ParseEnv)
-	// add driver for support yaml content
-	config.AddDriver(yaml.Driver)
+	// add driver
+	if isJson {
+		config.AddDriver(json.Driver)
+	} else {
+		config.AddDriver(yaml.Driver)
+	}
 
 	// load
 	err := config.LoadFiles(filePath)

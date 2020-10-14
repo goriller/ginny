@@ -14,7 +14,6 @@ func GetTrans(ctx context.Context) (context.Context, *sql.Tx) {
 		return ctx, value
 	}
 	return ctx, nil
-
 }
 
 // 创建事务上下文
