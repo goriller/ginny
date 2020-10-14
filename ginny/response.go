@@ -37,7 +37,7 @@ func (r *HTTPResponseResult) Msg() string {
 		}
 	}
 	// matching common message
-	if str, ok := Msg[r.Code]; ok {
+	if str, ok := msgMap[r.Code]; ok {
 		return str
 	}
 	return r.Message
@@ -53,7 +53,7 @@ func response(ctx *gin.Context, r *HTTPResponseResult) {
 			r.Status = http.StatusOK
 		}
 		if r.Code == 0 {
-			r.Code = Success
+			r.Code = success
 		}
 	} else {
 		r.Data = nil
@@ -64,7 +64,7 @@ func response(ctx *gin.Context, r *HTTPResponseResult) {
 			r.Message = r.Error()
 		}
 		if r.Code == 0 {
-			r.Code = Failed
+			r.Code = failed
 		}
 		// error log
 		//log.ErrorContext(ctx, r.Message,
@@ -72,15 +72,13 @@ func response(ctx *gin.Context, r *HTTPResponseResult) {
 		//)
 	}
 	ctx.JSON(r.Status, r)
-	return
 }
 
 // ResponseSuccess
 func ResponseSuccess(ctx *gin.Context, data interface{}) {
 	resp := NewResultBuilder()
-	resp.Status(http.StatusOK).Code(Success)
+	resp.Status(http.StatusOK).Code(success)
 	resp.Data(data).Response(ctx)
-	return
 }
 
 // ResponseError
@@ -88,59 +86,53 @@ func ResponseSuccess(ctx *gin.Context, data interface{}) {
 // options: [code Code, message string, status int]
 func ResponseError(ctx *gin.Context, err error, options ...interface{}) {
 	resp := NewResultBuilder()
-	resp.Status(http.StatusOK).Code(Failed)
+	resp.Status(http.StatusOK).Code(failed)
 	pickOptions(resp, options)
 	resp.Error(err).Response(ctx)
-	return
 }
 
 // ParamErrorResponse
 func ResponseParamError(ctx *gin.Context, err error) {
 	resp := NewResultBuilder()
-	resp.Status(http.StatusBadRequest).Code(ParamsError)
+	resp.Status(http.StatusBadRequest).Code(paramsError)
 	resp.Error(err).Response(ctx)
-	return
 }
 
 // ResponseAccessDenied
 func ResponseAccessDenied(ctx *gin.Context, err error) {
 	resp := NewResultBuilder()
-	resp.Status(http.StatusForbidden).Code(AccessDenied)
+	resp.Status(http.StatusForbidden).Code(accessDenied)
 	resp.Error(err).Response(ctx)
-	return
 }
 
 // ResponseNotFound
 func ResponseNotFound(ctx *gin.Context, err error) {
 	resp := NewResultBuilder()
-	resp.Status(http.StatusNotFound).Code(NotFound)
+	resp.Status(http.StatusNotFound).Code(notFound)
 	resp.Error(err).Response(ctx)
-	return
 }
 
 // ResponseInternalError
 func ResponseInternalError(ctx *gin.Context, err error) {
 	resp := NewResultBuilder()
-	resp.Status(http.StatusInternalServerError).Code(InternalError)
+	resp.Status(http.StatusInternalServerError).Code(internalError)
 	resp.Error(err).Response(ctx)
-	return
 }
 
 // ResponseServerTimeout
 func ResponseServerTimeout(ctx *gin.Context, err error) {
 	resp := NewResultBuilder()
-	resp.Status(http.StatusGatewayTimeout).Code(ServerTimeout)
+	resp.Status(http.StatusGatewayTimeout).Code(serverTimeout)
 	resp.Error(err).Response(ctx)
-	return
 }
 
 // pickMsg
-func pickMsg(resp *ResultBuilder, messages ...string) {
-	if len(messages) > 0 {
-		resp.Message(messages[0])
-	}
-	return
-}
+//func pickMsg(resp *ResultBuilder, messages ...string) {
+//	if len(messages) > 0 {
+//		resp.Message(messages[0])
+//	}
+//	return
+//}
 
 // pickOptions
 func pickOptions(resp *ResultBuilder, options []interface{}) {
@@ -156,7 +148,6 @@ func pickOptions(resp *ResultBuilder, options []interface{}) {
 			resp.Message(c)
 		}
 	}
-	return
 }
 
 // ResultBuilder builder pattern code
@@ -214,5 +205,4 @@ func (b *ResultBuilder) Build() *HTTPResponseResult {
 // Response
 func (b *ResultBuilder) Response(ctx *gin.Context) {
 	response(ctx, b.result)
-	return
 }
