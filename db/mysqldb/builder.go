@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"git.code.oa.com/linyyyang/ginny/logger"
+	"git.code.oa.com/linyyyang/ginny/loggy"
 	"github.com/didi/gendry/builder"
 	"github.com/didi/gendry/scanner"
 )
@@ -21,7 +21,7 @@ func Query(ctx context.Context, m *Manager, sqlStr string, bindMap map[string]in
 	if err != nil {
 		return err
 	}
-	logger.Info(fmt.Sprintf("%v, %v", cond, val))
+	loggy.Info(fmt.Sprintf("%v, %v", cond, val))
 	return querySql(ctx, m, cond, val, entity)
 }
 
@@ -45,7 +45,7 @@ func Find(ctx context.Context, m *Manager, entity interface{}, table string, whe
 	if nil != err {
 		return err
 	}
-	logger.Info(fmt.Sprintf("%v, %v", cond, val))
+	loggy.Info(fmt.Sprintf("%v, %v", cond, val))
 
 	return querySql(ctx, m, cond, val, entity)
 }
@@ -65,7 +65,7 @@ func FindAll(ctx context.Context, m *Manager, entity interface{}, table string, 
 	if nil != err {
 		return err
 	}
-	logger.Info(fmt.Sprintf("%v, %v", cond, val))
+	loggy.Info(fmt.Sprintf("%v, %v", cond, val))
 
 	return querySql(ctx, m, cond, val, entity)
 }
@@ -77,7 +77,7 @@ func Execute(ctx context.Context, m *Manager, sqlStr string, bindMap map[string]
 	if err != nil {
 		return 0, err
 	}
-	logger.Info(fmt.Sprintf("%v, %v", cond, val))
+	loggy.Info(fmt.Sprintf("%v, %v", cond, val))
 
 	return execSql(ctx, m, cond, val)
 }
@@ -91,7 +91,7 @@ func Insert(ctx context.Context, m *Manager, table string, data []map[string]int
 	if nil != err {
 		return 0, err
 	}
-	logger.Info(fmt.Sprintf("%v, %v", cond, val))
+	loggy.Info(fmt.Sprintf("%v, %v", cond, val))
 
 	return execSql(ctx, m, cond, val)
 }
@@ -105,7 +105,7 @@ func Update(ctx context.Context, m *Manager, table string, where, data map[strin
 	if err != nil {
 		return 0, err
 	}
-	logger.Info(fmt.Sprintf("%v, %v", cond, val))
+	loggy.Info(fmt.Sprintf("%v, %v", cond, val))
 
 	return execSql(ctx, m, cond, val)
 }
@@ -119,7 +119,7 @@ func Delete(ctx context.Context, m *Manager, table string, where map[string]inte
 	if err != nil {
 		return 0, err
 	}
-	logger.Info(fmt.Sprintf("%v, %v", cond, val))
+	loggy.Info(fmt.Sprintf("%v, %v", cond, val))
 
 	return execSql(ctx, m, cond, val)
 }

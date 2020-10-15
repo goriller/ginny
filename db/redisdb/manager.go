@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"git.code.oa.com/linyyyang/ginny/logger"
+	"git.code.oa.com/linyyyang/ginny/loggy"
 	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 )
@@ -27,7 +27,7 @@ func NewManager(config *Config) (*Manager, error) {
 	} else if len(config.StandaloneAddrs) > 0 {
 		client = newStandalone(config)
 	} else {
-		return nil, errors.New("invalid deploy mode config")
+		return nil, errors.New("invalid deploy mode confiy")
 	}
 
 	return &Manager{
@@ -78,7 +78,7 @@ func (m *Manager) Script(key interface{}) *redis.Script {
 // Close 释放连接池使用的资源。该函数应当很少用到
 func (m *Manager) Close() {
 	if err := m.client.Close(); err != nil {
-		logger.Error("close redisdb client error", zap.Error(err))
+		loggy.Error("close redisdb client error", zap.Error(err))
 	}
 }
 

@@ -31,7 +31,7 @@ func (s *Source) String() string {
 // String 打印可输出的配置
 func (c *Config) String() string {
 	var str strings.Builder
-	fmt.Fprintln(&str, "mysql config:")
+	fmt.Fprintln(&str, "mysql confiy:")
 	fmt.Fprintln(&str, "wdb:", c.WDB)
 	fmt.Fprintln(&str, "rdbs:", c.RDBs)
 	fmt.Fprintln(&str, "dbname:", c.DBName)

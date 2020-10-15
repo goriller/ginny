@@ -26,7 +26,7 @@ type Corp struct {
 
 // TestMain xxx
 func TestMain(m *testing.M) {
-	data, err := ioutil.ReadFile("../config.yaml")
+	data, err := ioutil.ReadFile("../confiy.yaml")
 	if err != nil {
 		fmt.Println(err.Error())
 	}

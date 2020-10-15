@@ -49,7 +49,7 @@ type Config struct {
 // String 打印可输出的配置
 func (c *Config) String() string {
 	var str strings.Builder
-	fmt.Fprintln(&str, "redisdb config:")
+	fmt.Fprintln(&str, "redisdb confiy:")
 	fmt.Fprintln(&str, "username:", c.Username)
 	fmt.Fprintln(&str, "db:", c.DB)
 
@@ -86,7 +86,7 @@ type Sentinel struct {
 // String 打印可输出的配置
 func (s *Sentinel) String() string {
 	var str strings.Builder
-	fmt.Fprintln(&str, "sentinel config:")
+	fmt.Fprintln(&str, "sentinel confiy:")
 	fmt.Fprintln(&str, "master_name:", s.MasterName)
 	fmt.Fprintln(&str, "sentinel_addrs:", s.SentinelAddrs)
 	return str.String()
@@ -103,7 +103,7 @@ type Cluster struct {
 // String 打印可输出的配置
 func (c *Cluster) String() string {
 	var str strings.Builder
-	fmt.Fprintln(&str, "cluster config:")
+	fmt.Fprintln(&str, "cluster confiy:")
 	fmt.Fprintln(&str, "cluster_addrs:", c.ClusterAddrs)
 	fmt.Fprintln(&str, "max_redirects:", c.MaxRedirects)
 	return str.String()
@@ -121,7 +121,7 @@ type Standalone struct {
 // String 打印可输出的配置
 func (s *Standalone) String() string {
 	var str strings.Builder
-	fmt.Fprintln(&str, "standalone config:")
+	fmt.Fprintln(&str, "standalone confiy:")
 	for i := 0; i < len(s.StandaloneAddrs); i++ {
 		fmt.Fprintln(&str, "master:", s.StandaloneAddrs[i].Master)
 		fmt.Fprintln(&str, "slaves:", s.StandaloneAddrs[i].Slaves)

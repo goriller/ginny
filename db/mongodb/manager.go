@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"git.code.oa.com/linyyyang/ginny/logger"
+	"git.code.oa.com/linyyyang/ginny/loggy"
 	mapset "github.com/deckarep/golang-set"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -88,7 +88,7 @@ func (m *Manager) Close() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	if err := m.client.Disconnect(ctx); err != nil {
-		logger.Error(fmt.Sprintf("disconnect mongodb client error: %s", err.Error()))
+		loggy.Error(fmt.Sprintf("disconnect mongodb client error: %s", err.Error()))
 	}
 }
 

@@ -8,7 +8,7 @@
 package ginny
 
 import (
-	"git.code.oa.com/linyyyang/ginny/logger"
+	"git.code.oa.com/linyyyang/ginny/loggy"
 	"git.code.oa.com/linyyyang/ginny/middleware"
 	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
@@ -22,7 +22,7 @@ type Application struct {
 // New
 func New(userMiddlewares ...gin.HandlerFunc) *Application {
 	engine := gin.New()
-	engine.Use(middleware.BenchmarkLog(), middleware.Recovery(logger.DefaultLogger, true),
+	engine.Use(middleware.BenchmarkLog(), middleware.Recovery(loggy.DefaultLogger, true),
 		middleware.Trace())
 	engine.Use(userMiddlewares...)
 

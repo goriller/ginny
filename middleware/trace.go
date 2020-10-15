@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"git.code.oa.com/linyyyang/ginny/logger"
+	"git.code.oa.com/linyyyang/ginny/loggy"
 	"git.code.oa.com/linyyyang/ginny/trace"
 	"github.com/gin-gonic/gin"
 )
@@ -28,7 +28,7 @@ func Trace() gin.HandlerFunc {
 			o = trace.WithLogger(msg.Logger.With(msg.TraceFields()...))
 			o(msg)
 		} else {
-			o = trace.WithLogger(logger.DefaultLogger.With(msg.TraceFields()...))
+			o = trace.WithLogger(loggy.DefaultLogger.With(msg.TraceFields()...))
 			o(msg)
 		}
 		ctx.Next()

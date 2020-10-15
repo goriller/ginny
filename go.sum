@@ -97,6 +97,8 @@ github.com/google/gofuzz v1.0.0/go.mod h1:dBl0BpW6vV/+mYPU4Po3pmUjxk6FQPldtuIdl/
 github.com/google/renameio v0.1.0/go.mod h1:KWCgfxg9yswjAJkECMjeO8J8rahYeXnNhOm40UhjYkI=
 github.com/gookit/color v1.2.6 h1:f6/ehoHPXwi2tuntjpBRhpBhFLL9YjrnB2m6RWsbCRg=
 github.com/gookit/color v1.2.6/go.mod h1:AhIE+pS6D4Ql0SQWbBeXPHw7gY0/sjHoA4s/n1KB7xg=
+github.com/gookit/config v1.1.0 h1:mO4aPz0jMUIKS8FdEQo6oQJ1Cd+DLCx4NCvJZOjBPnA=
+github.com/gookit/config v1.1.0/go.mod h1:+0W5UvRpZaChP3aXx0cZ+zv7U9tvX+0oSGjisJA6fWA=
 github.com/gookit/config/v2 v2.0.17 h1:NPUUlt0GTzXBeUq83HueBmr4bg53U5yAx51rHuelysQ=
 github.com/gookit/config/v2 v2.0.17/go.mod h1:N/eFzT/CzKgXu2fNikaJyLtMDTohGnktmQtqjth/iSI=
 github.com/gookit/goutil v0.2.10/go.mod h1:Hk4DFtZTUY6CxsnMU3nysqUXYSm8KRattv4TqHXrUos=
@@ -105,9 +107,12 @@ github.com/gookit/goutil v0.3.1/go.mod h1:avL1wnSRDLyY4lC2FPAq5vNLwUB9JYaKWoUxx9
 github.com/gookit/ini/v2 v2.0.5/go.mod h1:z1Uhs+Kda+cL/2oLdW3uVH7dvo5e8cWORfZ6hieP4QA=
 github.com/hashicorp/hcl v1.0.0/go.mod h1:E5yfLk+7swimpb2L/Alb/PJmXilQ/rhwaUYs4T20WEQ=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
+github.com/imdario/mergo v0.3.6/go.mod h1:2EnlNZ0deacrJVfApfmtdGgDfMuh/nq6Ok1EcJh5FfA=
 github.com/imdario/mergo v0.3.10 h1:6q5mVkdH/vYmqngx7kZQTjJ5HRsx+ImorDIEQ+beJgc=
 github.com/imdario/mergo v0.3.10/go.mod h1:jmQim1M+e3UYxmgPu/WyfjB3N3VflVyUjjjwH0dnCYA=
 github.com/inconshreveable/mousetrap v1.0.0/go.mod h1:PxqpIevigyE2G7u3NXJIT2ANytuPF1OarO4DADm73n8=
+github.com/jinzhu/configor v1.2.0 h1:u78Jsrxw2+3sGbGMgpY64ObKU4xWCNmNRJIjGVqxYQA=
+github.com/jinzhu/configor v1.2.0/go.mod h1:nX89/MOmDba7ZX7GCyU/VIaQ2Ar2aizBl2d3JLF/rDc=
 github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af h1:pmfjZENx5imkbgOkpRUYLnmbU7UEFbjtDA2hxJ1ichM=
 github.com/jmespath/go-jmespath v0.0.0-20180206201540-c2b33e8439af/go.mod h1:Nht3zPeWKUH0NzdCt2Blrr5ys8VGpn0CEB0cQHVjt7k=
 github.com/joho/godotenv v1.3.0/go.mod h1:7hK45KPybAkOC6peb+G5yklZfMxEjkZhHbwpqxOKXbg=

@@ -5,7 +5,7 @@
  * Description:
  * Copyright (c) - <richenlin(at)gmail.com>
  */
-package logger
+package loggy
 
 import (
 	"git.code.oa.com/linyyyang/ginny/trace"

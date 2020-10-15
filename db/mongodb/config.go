@@ -52,7 +52,7 @@ type Config struct {
 // String 打印可输出的配置
 func (c *Config) String() string {
 	var str strings.Builder
-	fmt.Fprintln(&str, "mongodb config:")
+	fmt.Fprintln(&str, "mongodb confiy:")
 	fmt.Fprintln(&str, "dbnames:", c.DBNames)
 	fmt.Fprintln(&str, "default_dbname:", c.DefaultDBName)
 
