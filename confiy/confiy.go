@@ -14,14 +14,28 @@ import (
 	"github.com/jinzhu/configor"
 )
 
-// LoadConf
-func LoadConf(s interface{}, files ...string) error {
-	return configor.New(&configor.Config{
+var (
+	confDriver *configor.Configor
+)
+
+// Confiy
+type Confiy struct {
+}
+
+// Init
+func Init() *Confiy {
+	confDriver = configor.New(&configor.Config{
 		AutoReload:         true,
 		AutoReloadInterval: time.Minute,
 		AutoReloadCallback: func(config interface{}) {
 			loggy.Warn("Config is changed")
 		},
 		//ErrorOnUnmatchedKeys: false,
-	}).Load(s, files...)
+	})
+	return &Confiy{}
+}
+
+// LoadConf
+func (c *Confiy) LoadConf(s interface{}, files ...string) error {
+	return confDriver.Load(s, files...)
 }
