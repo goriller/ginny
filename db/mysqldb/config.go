@@ -7,13 +7,13 @@ import (
 
 // Config DB基础配置
 type Config struct {
-	WDB         *Source   `yaml:"wdb"`
-	RDBs        []*Source `yaml:"rdbs"`
-	DBName      string    `yaml:"dbname"`
-	MaxOpenConn int       `yaml:"max_open_conn"`
-	MaxIdleConn int       `yaml:"max_idle_conn"`
-	MaxLifetime int       `yaml:"max_lifetime"`
-	Keepalive   int       `yaml:"keepalive"`
+	WDB         Source   `yaml:"wdb"`
+	RDBs        []Source `yaml:"rdbs"`
+	DBName      string   `yaml:"dbname"`
+	MaxOpenConn int      `yaml:"max_open_conn"`
+	MaxIdleConn int      `yaml:"max_idle_conn"`
+	MaxLifetime int      `yaml:"max_lifetime"`
+	Keepalive   int      `yaml:"keepalive"`
 }
 
 // Source DB部署实例数据源配置

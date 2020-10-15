@@ -22,14 +22,14 @@ type Manager struct {
 
 // NewManager 根据基础配置 初始化数据库
 func NewManager(config *Config) (*Manager, error) {
-	writeDB, err := newDB(config.WDB, config)
+	writeDB, err := newDB(&config.WDB, config)
 	if err != nil {
 		return nil, err
 	}
 
 	readDBs := make([]*sql.DB, 0, len(config.RDBs))
 	for i := 0; i < len(config.RDBs); i++ {
-		readDB, err := newDB(config.RDBs[i], config)
+		readDB, err := newDB(&config.RDBs[i], config)
 		if err != nil {
 			return nil, err
 		}
