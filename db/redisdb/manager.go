@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"git.code.oa.com/linyyyang/ginny/loggy"
+	"git.code.oa.com/Ginny/ginny/loggy"
 	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 )
