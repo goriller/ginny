@@ -27,7 +27,7 @@ func (r *HTTPResponseResult) Error() string {
 
 // Msg automatic matching message
 func (r *HTTPResponseResult) Msg() string {
-	if r.Code == 0 || r.Message != "" {
+	if r.Message != "" {
 		return r.Message
 	}
 	if r.codeMap != nil {
