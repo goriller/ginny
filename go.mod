@@ -1,4 +1,4 @@
-module git.code.oa.com/linyyyang/ginny
+module git.code.oa.com/Ginny/ginny
 
 go 1.14
 
