@@ -8,6 +8,8 @@
 package ginny
 
 import (
+	"errors"
+
 	"git.code.oa.com/Ginny/ginny/loggy"
 	"git.code.oa.com/Ginny/ginny/middleware"
 	"github.com/fvbock/endless"
@@ -25,6 +27,14 @@ func New(userMiddlewares ...gin.HandlerFunc) *Application {
 	engine.Use(middleware.BenchmarkLog(), middleware.Recovery(loggy.DefaultLogger, true),
 		middleware.Trace())
 	engine.Use(userMiddlewares...)
+
+	engine.NoRoute(func(ctx *gin.Context) {
+		ResponseNotFound(ctx, errors.New("not found"))
+	})
+
+	engine.NoMethod(func(ctx *gin.Context) {
+		ResponseNotFound(ctx, errors.New("not found"))
+	})
 
 	return &Application{engine}
 }
