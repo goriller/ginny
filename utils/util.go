@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"git.code.oa.com/linyyyang/ginny/loggy"
+	"git.code.oa.com/Ginny/ginny/loggy"
 	"github.com/bwmarrin/snowflake"
 	"go.uber.org/zap"
 )

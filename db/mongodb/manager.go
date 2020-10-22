@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"git.code.oa.com/linyyyang/ginny/loggy"
+	"git.code.oa.com/Ginny/ginny/loggy"
 	mapset "github.com/deckarep/golang-set"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"

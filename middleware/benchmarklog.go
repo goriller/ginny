@@ -3,8 +3,8 @@ package middleware
 import (
 	"time"
 
-	"git.code.oa.com/linyyyang/ginny/loggy"
-	"git.code.oa.com/linyyyang/ginny/trace"
+	"git.code.oa.com/Ginny/ginny/loggy"
+	"git.code.oa.com/Ginny/ginny/trace"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )

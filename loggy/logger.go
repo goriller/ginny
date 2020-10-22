@@ -8,7 +8,7 @@
 package loggy
 
 import (
-	"git.code.oa.com/linyyyang/ginny/trace"
+	"git.code.oa.com/Ginny/ginny/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

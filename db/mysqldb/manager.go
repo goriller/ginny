@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"time"
 
-	"git.code.oa.com/linyyyang/ginny/loggy"
+	"git.code.oa.com/Ginny/ginny/loggy"
 	_ "github.com/go-sql-driver/mysql"
 )
 

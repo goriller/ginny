@@ -8,8 +8,8 @@
 package ginny
 
 import (
-	"git.code.oa.com/linyyyang/ginny/loggy"
-	"git.code.oa.com/linyyyang/ginny/middleware"
+	"git.code.oa.com/Ginny/ginny/loggy"
+	"git.code.oa.com/Ginny/ginny/middleware"
 	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
 )
