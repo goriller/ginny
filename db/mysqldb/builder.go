@@ -135,14 +135,11 @@ func querySql(ctx context.Context, m *Manager, cond string, val []interface{}, e
 		return err
 	}
 	defer func() {
-		if rows != nil {
-			rows.Close()
-		}
 		if stmt != nil {
 			stmt.Close()
 		}
 	}()
-	return scanner.Scan(rows, entity)
+	return scanner.ScanClose(rows, entity)
 }
 
 // execSql
