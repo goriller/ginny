@@ -1,4 +1,4 @@
-package ginny
+package binding
 
 import (
 	"encoding/json"
@@ -23,8 +23,8 @@ var EnableDecoderDisallowUnknownFields = false
 // defaultMemory
 const defaultMemory = 32 << 20
 
-// Post
-func Post(ctx *gin.Context, ptr interface{}) error {
+// Form
+func Form(ctx *gin.Context, ptr interface{}) error {
 	return shouldBindForm(ctx, ptr)
 }
 

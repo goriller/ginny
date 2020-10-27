@@ -1,4 +1,4 @@
-package ginny
+package binding
 
 import (
 	"github.com/gin-gonic/gin"
