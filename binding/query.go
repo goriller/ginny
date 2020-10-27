@@ -5,8 +5,8 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Get
-func Get(ctx *gin.Context, ptr interface{}) error {
+// Query
+func Query(ctx *gin.Context, ptr interface{}) error {
 	err := shouldBindQuery(ctx, ptr)
 	if err != nil {
 		return err
