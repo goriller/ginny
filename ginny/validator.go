@@ -1,12 +1,8 @@
 package ginny
 
 import (
-	"fmt"
-
-	"github.com/go-playground/validator/v10"
+	"github.com/gin-gonic/gin/binding"
 )
-
-var validate = validator.New()
 
 // Validator interface
 type Validator interface {
@@ -27,12 +23,10 @@ func Validate(dto interface{}) error {
 		}
 	} else {
 		// Perform validate.Struct verification by default
-		if err := validate.Struct(dto); err != nil {
-			for _, e := range err.(validator.ValidationErrors) {
-				err = fmt.Errorf("%s is invalid", e.Field())
-			}
-			return err
+		if binding.Validator == nil {
+			return nil
 		}
+		return binding.Validator.ValidateStruct(dto)
 	}
 
 	return nil
