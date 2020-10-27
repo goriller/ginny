@@ -6,8 +6,6 @@ import (
 	"io"
 	"net/http"
 
-	"git.code.oa.com/Ginny/ginny/ginny"
-
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,7 +29,7 @@ func Form(ctx *gin.Context, ptr interface{}) error {
 	if err != nil {
 		return err
 	}
-	return ginny.Validate(ptr)
+	return Validate(ptr)
 }
 
 // shouldBindForm

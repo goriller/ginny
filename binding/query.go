@@ -1,7 +1,6 @@
 package binding
 
 import (
-	"git.code.oa.com/Ginny/ginny/ginny"
 	"github.com/gin-gonic/gin"
 )
 
@@ -11,7 +10,7 @@ func Query(ctx *gin.Context, ptr interface{}) error {
 	if err != nil {
 		return err
 	}
-	return ginny.Validate(ptr)
+	return Validate(ptr)
 }
 
 // Param
@@ -24,7 +23,7 @@ func Param(ctx *gin.Context, ptr interface{}) error {
 	if err != nil {
 		return err
 	}
-	return ginny.Validate(ptr)
+	return Validate(ptr)
 }
 
 // PathVariable
@@ -33,7 +32,7 @@ func PathVariable(ctx *gin.Context, ptr interface{}) error {
 	if err != nil {
 		return err
 	}
-	return ginny.Validate(ptr)
+	return Validate(ptr)
 }
 
 // shouldBindUri
