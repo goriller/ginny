@@ -69,6 +69,7 @@ func IsObjectIdHex(s string) bool {
 // Collection
 type Collection struct {
 	CollectionName string // 集合名称
+	Options        *options.FindOptions
 }
 
 // ICollection
