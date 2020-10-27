@@ -6,6 +6,8 @@ import (
 	"io"
 	"net/http"
 
+	"git.code.oa.com/Ginny/ginny/ginny"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,7 +27,11 @@ const defaultMemory = 32 << 20
 
 // Form
 func Form(ctx *gin.Context, ptr interface{}) error {
-	return shouldBindForm(ctx, ptr)
+	err := shouldBindForm(ctx, ptr)
+	if err != nil {
+		return err
+	}
+	return ginny.Validate(ptr)
 }
 
 // shouldBindForm
