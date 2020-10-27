@@ -72,20 +72,8 @@ type Collection struct {
 	Options        *options.FindOptions
 }
 
-// ICollection
-type ICollection interface {
-	GetCollection() *mongo.Collection
-	FindOne(ctx context.Context, filter, result interface{}) error
-	FindAll(ctx context.Context, findOptions *options.FindOptions, filter interface{}, resSlice interface{}) error
-	InsertOne(ctx context.Context, data interface{}) (interface{}, error)
-	InsertMany(ctx context.Context, data []interface{}) ([]interface{}, error)
-	UpdateOne(ctx context.Context, filter, updateData interface{}) (int64, error)
-	UpdateMany(ctx context.Context, filter, updateData interface{}) (int64, error)
-	Delete(ctx context.Context, filter interface{}) (int64, error)
-}
-
 // NewCollection
-func NewCollection(name string) ICollection {
+func NewCollection(name string) *Collection {
 	return &Collection{
 		CollectionName: name,
 	}
