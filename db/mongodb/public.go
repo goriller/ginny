@@ -110,39 +110,17 @@ func (m *Collection) FindAll(ctx context.Context, findOptions *options.FindOptio
 		return ErrMustSlice
 	}
 
-	cur, err := m.GetCollection().Find(ctx, filter, findOptions)
+	cursor, err := m.GetCollection().Find(ctx, filter, findOptions)
 	if err != nil {
 		return err
 	}
-
 	// Close the cursor once finished
-	defer cur.Close(ctx)
+	defer cursor.Close(ctx)
 
-	i := 0
-	sliceVal := resultV.Elem()
-	elemType := sliceVal.Type().Elem()
-
-	// Finding multiple documents returns a cursor  返回游标
-	// Iterating through the cursor allows us to decode documents one at a time
-	for cur.Next(ctx) {
-		if sliceVal.Len() == i {
-			newElem := reflect.New(elemType)
-			sliceVal = reflect.Append(sliceVal, newElem.Elem())
-			sliceVal = sliceVal.Slice(0, sliceVal.Cap())
-		}
-		currElem := sliceVal.Index(i).Addr().Interface()
-		if err = cur.Decode(currElem); err != nil {
-			return err
-		}
-		i++
-	}
-
-	if err := cur.Err(); err != nil {
+	if err = cursor.All(ctx, resSlice); err != nil {
 		log.Fatal(err)
-		return err
 	}
 
-	resultV.Elem().Set(sliceVal.Slice(0, i))
 	return nil
 }
 
