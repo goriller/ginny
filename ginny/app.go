@@ -10,6 +10,7 @@ package ginny
 import (
 	"errors"
 
+	"git.code.oa.com/Ginny/ginny/logiy"
 	"git.code.oa.com/Ginny/ginny/middleware"
 	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
@@ -22,8 +23,9 @@ type Application struct {
 
 // New
 func New(userMiddlewares ...gin.HandlerFunc) *Application {
-	engine := gin.Default()
-	engine.Use(middleware.BenchmarkLog(), middleware.Trace())
+	engine := gin.New()
+	engine.Use(middleware.BenchmarkLog(), middleware.Recovery(logiy.DefaultLogger, true),
+		middleware.Trace())
 	engine.Use(userMiddlewares...)
 	// NoRoute
 	engine.NoRoute(func(ctx *gin.Context) {

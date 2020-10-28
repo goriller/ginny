@@ -24,7 +24,7 @@ const (
 // stack means whether output the stack info.
 // The stack info is easy to find where the error occurs but the stack info is too large.
 func Recovery(logger *zap.Logger, stack bool) gin.HandlerFunc {
-	consoleLogger := log.New(gin.DefaultErrorWriter, "\n\n\x1b[31m", log.LstdFlags)
+	consoleLogger := log.New(gin.DefaultWriter, "\n\n\x1b[31m", log.LstdFlags)
 	return func(c *gin.Context) {
 		defer func() {
 			if err := recover(); err != nil {
