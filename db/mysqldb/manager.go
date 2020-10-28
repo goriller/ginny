@@ -7,7 +7,7 @@ import (
 	"math/rand"
 	"time"
 
-	"git.code.oa.com/Ginny/ginny/loggy"
+	"git.code.oa.com/Ginny/ginny/logiy"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -71,11 +71,11 @@ func (m *Manager) WDB() *sql.DB {
 func (m *Manager) Close() {
 	m.cancel()
 	if err := m.writeDB.Close(); err != nil {
-		loggy.Error(fmt.Sprintf("close db write pool error: %s", err.Error()))
+		logiy.Error(fmt.Sprintf("close db write pool error: %s", err.Error()))
 	}
 	for i := 0; i < len(m.readDBs); i++ {
 		if err := m.readDBs[i].Close(); err != nil {
-			loggy.Error(fmt.Sprintf("close db read pool error: %s", err.Error()))
+			logiy.Error(fmt.Sprintf("close db read pool error: %s", err.Error()))
 		}
 	}
 }
@@ -108,11 +108,11 @@ func keepalive(ctx context.Context, db *sql.DB, interval time.Duration) {
 	for {
 		select {
 		case <-ctx.Done():
-			loggy.Info("keepalive db end")
+			logiy.Info("keepalive db end")
 			return
 		case <-ticker.C:
 			if err := db.Ping(); err != nil {
-				loggy.Error(fmt.Sprintf("keepalive db ping error: %s", err.Error()))
+				logiy.Error(fmt.Sprintf("keepalive db ping error: %s", err.Error()))
 			}
 		}
 	}

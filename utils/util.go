@@ -7,7 +7,7 @@ import (
 	"strings"
 	"unsafe"
 
-	"git.code.oa.com/Ginny/ginny/loggy"
+	"git.code.oa.com/Ginny/ginny/logiy"
 	"github.com/bwmarrin/snowflake"
 	"go.uber.org/zap"
 )
@@ -17,7 +17,7 @@ func GenerateID() (string, error) {
 	// 雪花
 	node, err := snowflake.NewNode(1)
 	if err != nil {
-		loggy.Error("GetSnowID NewNode error",
+		logiy.Error("GetSnowID NewNode error",
 			zap.Error(err),
 		)
 		return "", err

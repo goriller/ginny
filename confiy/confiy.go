@@ -10,7 +10,7 @@ package confiy
 import (
 	"time"
 
-	"git.code.oa.com/Ginny/ginny/loggy"
+	"git.code.oa.com/Ginny/ginny/logiy"
 	"github.com/jinzhu/configor"
 )
 
@@ -28,7 +28,7 @@ func Init() *Confiy {
 		AutoReload:         true,
 		AutoReloadInterval: time.Minute,
 		AutoReloadCallback: func(config interface{}) {
-			loggy.Warn("Config is changed")
+			logiy.Warn("Config is changed")
 		},
 		//ErrorOnUnmatchedKeys: false,
 	})
