@@ -76,6 +76,7 @@ type Collection struct {
 func NewCollection(name string) *Collection {
 	return &Collection{
 		CollectionName: name,
+		Options:        options.Find(),
 	}
 }
 
@@ -94,7 +95,7 @@ func (m *Collection) FindOne(ctx context.Context, filter, result interface{}) er
 }
 
 // FindAll 查询多个文档
-// findOptions := options.Find()
+// findOptions := m.Options
 // findOptions.SetLimit(limit)
 // findOptions.SetSkip(offset)
 // findOptions.SetProjection(selector)
