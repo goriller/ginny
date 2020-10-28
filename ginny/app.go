@@ -22,9 +22,8 @@ type Application struct {
 
 // New
 func New(userMiddlewares ...gin.HandlerFunc) *Application {
-	engine := gin.New()
-	engine.Use(middleware.BenchmarkLog(), gin.Recovery(),
-		middleware.Trace())
+	engine := gin.Default()
+	engine.Use(middleware.BenchmarkLog(), middleware.Trace())
 	engine.Use(userMiddlewares...)
 	// NoRoute
 	engine.NoRoute(func(ctx *gin.Context) {
