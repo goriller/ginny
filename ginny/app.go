@@ -24,7 +24,7 @@ type Application struct {
 // New
 func New(userMiddlewares ...gin.HandlerFunc) *Application {
 	engine := gin.New()
-	engine.Use(middleware.BenchmarkLog(), gin.Logger(), middleware.Recovery(logiy.DefaultLogger, true),
+	engine.Use(middleware.BenchmarkLog(), middleware.Recovery(logiy.DefaultLogger, true),
 		middleware.Trace())
 	engine.Use(userMiddlewares...)
 	// NoRoute
