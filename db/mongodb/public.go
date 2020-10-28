@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"errors"
+	"log"
 	"reflect"
 	"time"
 
@@ -109,7 +110,7 @@ func (m *Collection) FindAll(ctx context.Context, findOptions *options.FindOptio
 		return ErrMustSlice
 	}
 
-	cur, err := m.GetCollection().Find(context.TODO(), filter, findOptions)
+	cur, err := m.GetCollection().Find(ctx, filter, findOptions)
 	if err != nil {
 		return err
 	}
@@ -123,7 +124,7 @@ func (m *Collection) FindAll(ctx context.Context, findOptions *options.FindOptio
 
 	// Finding multiple documents returns a cursor  返回游标
 	// Iterating through the cursor allows us to decode documents one at a time
-	for cur.Next(context.TODO()) {
+	for cur.Next(ctx) {
 		if sliceVal.Len() == i {
 			newElem := reflect.New(elemType)
 			sliceVal = reflect.Append(sliceVal, newElem.Elem())
@@ -137,8 +138,10 @@ func (m *Collection) FindAll(ctx context.Context, findOptions *options.FindOptio
 	}
 
 	if err := cur.Err(); err != nil {
+		log.Fatal(err)
 		return err
 	}
+
 	resultV.Elem().Set(sliceVal.Slice(0, i))
 	return nil
 }
