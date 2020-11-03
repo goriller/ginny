@@ -5,6 +5,8 @@ import (
 	"math/rand"
 	"time"
 
+	"git.code.oa.com/Ginny/ginny/utils"
+
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -121,12 +123,9 @@ func NewMessage(logger *zap.Logger, reqID, username, deviceID string, context in
 
 //RandReqID rand reqID
 func RandReqID() string {
-	if n <= 0 {
+	b, err := utils.GenerateID()
+	if err != nil {
 		return ""
 	}
-	b := make([]byte, n)
-	for i := range b {
-		b[i] = charSet[rnd.Intn(len(charSet))]
-	}
-	return string(b)
+	return b
 }
