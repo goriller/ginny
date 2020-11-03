@@ -2,25 +2,13 @@ package trace
 
 import (
 	"context"
-	"math/rand"
 	"time"
 
-	"git.code.oa.com/Ginny/ginny/logiy"
 	"github.com/bwmarrin/snowflake"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
-
-var (
-	rnd     *rand.Rand
-	n       = 20
-	charSet = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890"
-)
-
-func init() {
-	rnd = rand.New(rand.NewSource(time.Now().UnixNano()))
-}
 
 type msgStr string
 
@@ -125,9 +113,6 @@ func NewMessage(logger *zap.Logger, reqID, username, deviceID string, context in
 func RandReqID() string {
 	node, err := snowflake.NewNode(1)
 	if err != nil {
-		logiy.Error("GetSnowID NewNode error",
-			zap.Error(err),
-		)
 		return ""
 	}
 
