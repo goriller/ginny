@@ -6,28 +6,7 @@ import (
 	"reflect"
 	"strings"
 	"unsafe"
-
-	"git.code.oa.com/Ginny/ginny/logiy"
-	"github.com/bwmarrin/snowflake"
-	"go.uber.org/zap"
 )
-
-// GenerateID 雪花ID uint64 -> string
-func GenerateID() (string, error) {
-	// 雪花
-	node, err := snowflake.NewNode(1)
-	if err != nil {
-		logiy.Error("GetSnowID NewNode error",
-			zap.Error(err),
-		)
-		return "", err
-	}
-
-	// Generate a snowflake ID.
-	idSnow := node.Generate()
-	id := idSnow.String()
-	return id, nil
-}
 
 // IsEmptyString 为空判断
 func IsEmptyString(text string) bool {

@@ -20,6 +20,19 @@ const (
 	KeyDeviceID = "deviceID"
 )
 
+var snowNode *snowflake.Node
+
+func InitSnowNode(n int64) (*snowflake.Node, error) {
+	if snowNode == nil {
+		node, err := snowflake.NewNode(n)
+		if err != nil {
+			return nil, err
+		}
+		snowNode = node
+	}
+	return snowNode, nil
+}
+
 // Message 链路跟踪上下文数据结构，http server和grpc server共用
 type Message struct {
 	StartTime time.Time
@@ -111,7 +124,7 @@ func NewMessage(logger *zap.Logger, reqID, username, deviceID string, context in
 
 //RandReqID rand reqID
 func RandReqID() string {
-	node, err := snowflake.NewNode(1)
+	node, err := InitSnowNode(1)
 	if err != nil {
 		return ""
 	}
