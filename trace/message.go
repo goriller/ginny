@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/bwmarrin/snowflake"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -19,19 +18,6 @@ const (
 	KeyReqID    = "reqID"
 	KeyDeviceID = "deviceID"
 )
-
-var snowNode *snowflake.Node
-
-func InitSnowNode(n int64) (*snowflake.Node, error) {
-	if snowNode == nil {
-		node, err := snowflake.NewNode(n)
-		if err != nil {
-			return nil, err
-		}
-		snowNode = node
-	}
-	return snowNode, nil
-}
 
 // Message 链路跟踪上下文数据结构，http server和grpc server共用
 type Message struct {
@@ -124,12 +110,5 @@ func NewMessage(logger *zap.Logger, reqID, username, deviceID string, context in
 
 //RandReqID rand reqID
 func RandReqID() string {
-	node, err := InitSnowNode(1)
-	if err != nil {
-		return ""
-	}
-
-	// Generate a snowflake ID.
-	idSnow := node.Generate()
-	return idSnow.String()
+	return GenerateID()
 }
