@@ -5,8 +5,8 @@ import (
 	"math/rand"
 	"time"
 
-	"git.code.oa.com/Ginny/ginny/utils"
-
+	"git.code.oa.com/Ginny/ginny/logiy"
+	"github.com/bwmarrin/snowflake"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -123,9 +123,15 @@ func NewMessage(logger *zap.Logger, reqID, username, deviceID string, context in
 
 //RandReqID rand reqID
 func RandReqID() string {
-	b, err := utils.GenerateID()
+	node, err := snowflake.NewNode(1)
 	if err != nil {
+		logiy.Error("GetSnowID NewNode error",
+			zap.Error(err),
+		)
 		return ""
 	}
-	return b
+
+	// Generate a snowflake ID.
+	idSnow := node.Generate()
+	return idSnow.String()
 }
