@@ -1,3 +1,3 @@
 # [Ginny](https://git.code.oa.com/Ginny/ginny)
 
-Ginny is based on gin.
+Ginny framework base on Gin, more components to improve development efficiency.
