@@ -13,7 +13,10 @@ func Query(ctx *gin.Context, ptr interface{}) error {
 	if kind.Kind() != reflect.Ptr {
 		return fmt.Errorf("invalid type, must be pointer")
 	}
-	return ctx.ShouldBindQuery(ptr)
+	if err := ctx.ShouldBindQuery(ptr); err != nil {
+		return err
+	}
+	return Valid(ptr)
 }
 
 // PathVariable
@@ -22,7 +25,10 @@ func PathVariable(ctx *gin.Context, ptr interface{}) error {
 	if kind.Kind() != reflect.Ptr {
 		return fmt.Errorf("invalid type, must be pointer")
 	}
-	return ctx.ShouldBindUri(ptr)
+	if err := ctx.ShouldBindUri(ptr); err != nil {
+		return err
+	}
+	return Valid(ptr)
 }
 
 // Param
@@ -31,5 +37,8 @@ func Param(ctx *gin.Context, ptr interface{}) error {
 	if kind.Kind() != reflect.Ptr {
 		return fmt.Errorf("invalid type, must be pointer")
 	}
-	return ctx.ShouldBind(ptr)
+	if err := ctx.ShouldBind(ptr); err != nil {
+		return err
+	}
+	return Valid(ptr)
 }
