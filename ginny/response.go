@@ -17,6 +17,14 @@ type HTTPResponseResult struct {
 	codeMap map[ErrCode]string `json:"-"` //项目自定义错误信息
 }
 
+// codeMap
+var codeMap map[ErrCode]string
+
+// SetCoDeMap
+func SetCoDeMap(m map[ErrCode]string) {
+	codeMap = m
+}
+
 // Error get error
 func (r *HTTPResponseResult) Error() string {
 	if r.Err != nil {
@@ -158,7 +166,7 @@ type ResultBuilder struct {
 // NewResultBuilder get instances of ResultBuilder
 func NewResultBuilder(m ...map[ErrCode]string) *ResultBuilder {
 	result := &HTTPResponseResult{
-		codeMap: nil,
+		codeMap: codeMap,
 	}
 	if m != nil && m[0] != nil {
 		result.codeMap = m[0]
