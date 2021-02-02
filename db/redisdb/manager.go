@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"time"
 
-	"git.code.oa.com/Ginny/ginny/logiy"
+	"git.code.oa.com/Ginny/ginny/logg"
 	"github.com/go-redis/redis/v8"
 	"go.uber.org/zap"
 )
@@ -78,7 +78,7 @@ func (m *Manager) Script(key interface{}) *redis.Script {
 // Close 释放连接池使用的资源。该函数应当很少用到
 func (m *Manager) Close() {
 	if err := m.client.Close(); err != nil {
-		logiy.Error("close redisdb client error", zap.Error(err))
+		logg.Error("close redisdb client error", zap.Error(err))
 	}
 }
 

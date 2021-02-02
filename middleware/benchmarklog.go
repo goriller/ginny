@@ -3,7 +3,7 @@ package middleware
 import (
 	"time"
 
-	"git.code.oa.com/Ginny/ginny/logiy"
+	"git.code.oa.com/Ginny/ginny/logg"
 	"git.code.oa.com/Ginny/ginny/trace"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
@@ -20,13 +20,13 @@ func BenchmarkLog() gin.HandlerFunc {
 
 		latency := time.Since(msg.StartTime)
 
-		logiy.InfoContext(ctx, logiy.KeyBenchmarkLog,
-			zap.String(logiy.KeyClientIP, ctx.ClientIP()),
-			zap.String(logiy.KeyHandlerName, ctx.HandlerName()),
-			zap.String(logiy.KeyHTTPMethod, ctx.Request.Method),
-			zap.String(logiy.KeyFullPath, ctx.FullPath()),
-			zap.Int64(logiy.KeyLatency, latency.Milliseconds()),
-			zap.Int(logiy.KeyStatusCode, ctx.Writer.Status()),
+		logg.InfoContext(ctx, logg.KeyBenchmarkLog,
+			zap.String(logg.KeyClientIP, ctx.ClientIP()),
+			zap.String(logg.KeyHandlerName, ctx.HandlerName()),
+			zap.String(logg.KeyHTTPMethod, ctx.Request.Method),
+			zap.String(logg.KeyFullPath, ctx.FullPath()),
+			zap.Int64(logg.KeyLatency, latency.Milliseconds()),
+			zap.Int(logg.KeyStatusCode, ctx.Writer.Status()),
 		)
 	}
 }
