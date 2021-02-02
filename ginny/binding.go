@@ -7,20 +7,24 @@ import (
 
 // BindForm
 func BindForm(ctx *gin.Context, ptr interface{}) error {
-	return binding.Form(ctx, ptr)
+	data := binding.Form(ctx, ptr)
+	return binding.Validate(data)
 }
 
 // BindQuery
 func BindQuery(ctx *gin.Context, ptr interface{}) error {
-	return binding.Query(ctx, ptr)
+	data := binding.Query(ctx, ptr)
+	return binding.Validate(data)
 }
 
 // BindPathVariable
 func BindPathVariable(ctx *gin.Context, ptr interface{}) error {
-	return binding.PathVariable(ctx, ptr)
+	data := binding.PathVariable(ctx, ptr)
+	return binding.Validate(data)
 }
 
 // BindParam
 func BindParam(ctx *gin.Context, ptr interface{}) error {
-	return binding.Param(ctx, ptr)
+	data := binding.Param(ctx, ptr)
+	return binding.Validate(data)
 }
