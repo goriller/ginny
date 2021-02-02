@@ -1,24 +1,20 @@
 package ginny
 
 import (
-	"git.code.oa.com/Ginny/ginny/binding"
 	"github.com/gin-gonic/gin"
 )
 
-// BindQuery
-func BindQuery(ctx *gin.Context, ptr interface{}) error {
-	data := ctx.ShouldBindQuery(ptr)
-	return binding.Validate(data)
+// Query
+func Query(ctx *gin.Context, ptr interface{}) error {
+	return ctx.ShouldBindQuery(ptr)
 }
 
-// BindPathVariable
-func BindPathVariable(ctx *gin.Context, ptr interface{}) error {
-	data := ctx.ShouldBindUri(ptr)
-	return binding.Validate(data)
+// PathVariable
+func PathVariable(ctx *gin.Context, ptr interface{}) error {
+	return ctx.ShouldBindUri(ptr)
 }
 
-// BindParam
-func BindParam(ctx *gin.Context, ptr interface{}) error {
-	data := ctx.ShouldBind(ptr)
-	return binding.Validate(data)
+// Param
+func Param(ctx *gin.Context, ptr interface{}) error {
+	return ctx.ShouldBind(ptr)
 }
