@@ -20,8 +20,8 @@ type HTTPResponseResult struct {
 // codeMap
 var codeMap map[ErrCode]string
 
-// SetCoDeMap
-func SetCoDeMap(m map[ErrCode]string) {
+// SetCodeMap
+func SetCodeMap(m map[ErrCode]string) {
 	codeMap = m
 }
 
