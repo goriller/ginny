@@ -6,6 +6,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// H hash map type
+type H map[string]interface{}
+
 // HTTPResponseResult Common reponse
 type HTTPResponseResult struct {
 	Status  int         `json:"-"` //HTTP Status
