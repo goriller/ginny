@@ -12,10 +12,11 @@ require (
 	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gomodule/redigo v2.0.0+incompatible
 	github.com/jinzhu/configor v1.2.0
-	go.mongodb.org/mongo-driver v1.4.0
+	go.mongodb.org/mongo-driver v1.4.5
 	go.uber.org/zap v1.16.0
 	golang.org/x/crypto v0.0.0-20190611184440-5c40567a22f8 // indirect
 	google.golang.org/grpc v1.31.0
+	gopkg.in/go-playground/validator.v8 v8.18.2
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gopkg.in/yaml.v2 v2.3.0
 )

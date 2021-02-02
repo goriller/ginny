@@ -1,4 +1,4 @@
-package logiy
+package logg
 
 import (
 	"os"

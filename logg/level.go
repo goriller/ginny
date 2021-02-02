@@ -1,4 +1,4 @@
-package logiy
+package logg
 
 type Level int8
 
@@ -12,6 +12,6 @@ const (
 	warnLevel
 	// errorLevel level. Logs. Used for errors that should definitely be noted.
 	errorLevel
-	// fatalLevel level. Logs and then calls `logiy.Exit(1)`. highest level of severity.
+	// fatalLevel level. Logs and then calls `logg.Exit(1)`. highest level of severity.
 	fatalLevel
 )

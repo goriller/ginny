@@ -16,7 +16,7 @@ func WithReqID(id string) Option {
 	}
 }
 
-//WithLogger set logiy
+//WithLogger set logg
 func WithLogger(l *zap.Logger) Option {
 	return func(msg *Message) {
 		msg.Logger = l
