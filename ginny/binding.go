@@ -5,26 +5,20 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// BindForm
-func BindForm(ctx *gin.Context, ptr interface{}) error {
-	data := binding.Form(ctx, ptr)
-	return binding.Validate(data)
-}
-
 // BindQuery
 func BindQuery(ctx *gin.Context, ptr interface{}) error {
-	data := binding.Query(ctx, ptr)
+	data := ctx.ShouldBindQuery(ptr)
 	return binding.Validate(data)
 }
 
 // BindPathVariable
 func BindPathVariable(ctx *gin.Context, ptr interface{}) error {
-	data := binding.PathVariable(ctx, ptr)
+	data := ctx.ShouldBindUri(ptr)
 	return binding.Validate(data)
 }
 
 // BindParam
 func BindParam(ctx *gin.Context, ptr interface{}) error {
-	data := binding.Param(ctx, ptr)
+	data := ctx.ShouldBind(ptr)
 	return binding.Validate(data)
 }
