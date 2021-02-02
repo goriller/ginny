@@ -8,6 +8,9 @@ import (
 	"unsafe"
 )
 
+// H hash map type
+type H map[string]interface{}
+
 // IsEmptyString 为空判断
 func IsEmptyString(text string) bool {
 	s := strings.TrimSpace(text)
