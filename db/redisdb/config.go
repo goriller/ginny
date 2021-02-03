@@ -8,42 +8,42 @@ import (
 // Config redis基础配置
 type Config struct {
 	// 6.0及以上版本的redis采用ACL系统，使用Username鉴定连接
-	Username string `yaml:"username"`
-	Password string `yaml:"password"`
+	Username string `json:"username" yaml:"username"`
+	Password string `json:"password" yaml:"password"`
 	//业务库DB，使用ClusterClient时该配置失效（包括redis cluster部署、读写分离配置下的sentinel、读写分离或分片多主standalone）
-	DB int `yaml:"db"`
+	DB int `json:"db" yaml:"db"`
 
 	//连接池可持有分配的最大连接数。driver默认 Client:10*NumCPU ClusterClient:5*NumCPU
-	PoolSize int `yaml:"pool_size"`
+	PoolSize int `json:"pool_size" yaml:"pool_size"`
 	//最小空闲连接数
-	MinIdleConns int `yaml:"min_idle_conns"`
+	MinIdleConns int `json:"min_idle_conns" yaml:"min_idle_conns"`
 	//空闲连接超时时间(单位s)，保持空闲超过该持续时长的连接会由client主动关闭。driver默认5min，配置-1 则不检查空闲超时
 	//该设置需小于redis服务端的timeout设置（建议redis服务端timeout设置为0，即服务端不主动断开连接）
-	IdleTimeout int `yaml:"idle_timeout"`
+	IdleTimeout int `json:"idle_timeout" yaml:"idle_timeout"`
 	//idle connection reaper对空闲连接的检查频率(单位s)。driver默认1min，配置-1 则reaper无效 但若配置了IdleTimeout 空闲连接仍会被连接池丢弃
-	IdleCheckFrequency int `yaml:"idle_check_frequency"`
+	IdleCheckFrequency int `json:"idle_check_frequency" yaml:"idle_check_frequency"`
 	//连接龄期(单位s)，过旧连接会被client关闭。driver默认不关闭过旧连接
-	MaxConnAge int `yaml:"max_conn_age"`
+	MaxConnAge int `json:"max_conn_age" yaml:"max_conn_age"`
 	//连接池超时时间(单位s)，连接池所有连接都忙时 client等待PoolTimeout后返回错误。driver默认ReadTimeout+1s
-	PoolTimeout int `yaml:"pool_timeout"`
+	PoolTimeout int `json:"pool_timeout" yaml:"pool_timeout"`
 
 	//连接超时(单位s)，driver默认5s
-	DialTimeout int `yaml:"dial_timeout"`
+	DialTimeout int `json:"dial_timeout" yaml:"dial_timeout"`
 	//读超时(单位s)，driver默认3s，配置-1 无超时
-	ReadTimeout int `yaml:"read_timeout"`
+	ReadTimeout int `json:"read_timeout" yaml:"read_timeout"`
 	//写超时(单位s)，driver默认同ReadTimeout
-	WriteTimeout int `yaml:"write_timeout"`
+	WriteTimeout int `json:"write_timeout" yaml:"write_timeout"`
 
 	//读写分离配置，均为false时 不读从库 所有读写都连主库，二者均为true时driver优先选择RouteByLatency策略
 	//允许路由只读命令到最近的主或从节点
-	RouteByLatency bool `yaml:"route_by_latency"`
+	RouteByLatency bool `json:"route_by_latency" yaml:"route_by_latency"`
 	//允许路由只读命令到任意主或从节点
-	RouteRandomly bool `yaml:"route_randomly"`
+	RouteRandomly bool `json:"route_randomly" yaml:"route_randomly"`
 
 	//通过3种部署的必要配置有无 来区分部署模式：MasterName与SentinelAddrs、ClusterAddrs、StandaloneAddrs
-	Sentinel   `yaml:"sentinel,inline"`
-	Cluster    `yaml:"cluster,inline"`
-	Standalone `yaml:"standalone,inline"`
+	Sentinel   `json:"sentinel,inline" yaml:"sentinel,inline"`
+	Cluster    `json:"cluster,inline" yaml:"cluster,inline"`
+	Standalone `json:"standalone,inline" yaml:"standalone,inline"`
 }
 
 // String 打印可输出的配置
@@ -77,10 +77,10 @@ func (c *Config) String() string {
 // Sentinel 哨兵部署特性配置
 type Sentinel struct {
 	//主节点别名
-	MasterName string `yaml:"master_name"`
+	MasterName string `json:"master_name" yaml:"master_name"`
 	//哨兵节点的地址、requirepass
-	SentinelAddrs    []string `yaml:"sentinel_addrs"`
-	SentinelPassword string   `yaml:"sentinel_password"`
+	SentinelAddrs    []string `json:"sentinel_addrs" yaml:"sentinel_addrs"`
+	SentinelPassword string   `json:"sentinel_password" yaml:"sentinel_password"`
 }
 
 // String 打印可输出的配置
@@ -95,9 +95,9 @@ func (s *Sentinel) String() string {
 // Cluster redisdb cluster部署特性配置
 type Cluster struct {
 	//集群节点地址
-	ClusterAddrs []string `yaml:"cluster_addrs"`
+	ClusterAddrs []string `json:"cluster_addrs" yaml:"cluster_addrs"`
 	//最大的重定向重试次数，网络错误或找错数据分片时 client会得到重定向错误和集群的最新情况 进行重定向。-1表示不限制，driver默认3次
-	MaxRedirects int `yaml:"max_redirects"`
+	MaxRedirects int `json:"max_redirects" yaml:"max_redirects"`
 }
 
 // String 打印可输出的配置
@@ -113,9 +113,9 @@ func (c *Cluster) String() string {
 type Standalone struct {
 	//需要读写分离时 需配出部署中的所有主从节点地址，1套主从为1个ClusterSlot，仅单机模式 只有1主没有从时 不写slaves配置
 	StandaloneAddrs []struct {
-		Master string   `yaml:"master"`
-		Slaves []string `yaml:"slaves"`
-	} `yaml:"standalone_addrs"`
+		Master string   `json:"master" yaml:"master"`
+		Slaves []string `json:"slaves" yaml:"slaves"`
+	} `json:"standalone_addrs" yaml:"standalone_addrs"`
 }
 
 // String 打印可输出的配置
