@@ -2,6 +2,7 @@ package utils
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -42,7 +43,7 @@ func httpClient() *http.Client {
 }
 
 //HTTPRequest http调用
-func HTTPRequest(method, path string, bodyData interface{}, header map[string]string, rsp interface{}) ([]byte, error) {
+func HTTPRequest(ctx context.Context, method, path string, bodyData interface{}, header map[string]string, rsp interface{}) ([]byte, error) {
 	var body io.Reader
 	if bodyData != nil {
 		bodyRaw, err := json.Marshal(bodyData)
@@ -84,11 +85,11 @@ func HTTPRequest(method, path string, bodyData interface{}, header map[string]st
 }
 
 //HTTPPost Post请求
-func HTTPPost(path string, bodyData interface{}, header map[string]string, rsp interface{}) ([]byte, error) {
-	return HTTPRequest(http.MethodPost, path, bodyData, header, rsp)
+func HTTPPost(ctx context.Context, path string, bodyData interface{}, header map[string]string, rsp interface{}) ([]byte, error) {
+	return HTTPRequest(ctx, http.MethodPost, path, bodyData, header, rsp)
 }
 
 //HTTPGet Get请求
-func HTTPGet(path string, header map[string]string, rsp interface{}) ([]byte, error) {
-	return HTTPRequest(http.MethodGet, path, nil, header, rsp)
+func HTTPGet(ctx context.Context, path string, header map[string]string, rsp interface{}) ([]byte, error) {
+	return HTTPRequest(ctx, http.MethodGet, path, nil, header, rsp)
 }
