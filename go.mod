@@ -1,4 +1,4 @@
-module git.code.oa.com/Ginny/ginny
+module github.com/gorillazer/ginny
 
 go 1.15
 

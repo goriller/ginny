@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 
-	"git.code.oa.com/Ginny/ginny/logg"
+	"github.com/gorillazer/ginny/logg"
 	"github.com/didi/gendry/builder"
 	"github.com/didi/gendry/scanner"
 )

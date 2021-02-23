@@ -3,8 +3,8 @@ package ginny
 import (
 	"errors"
 
-	"git.code.oa.com/Ginny/ginny/logg"
-	"git.code.oa.com/Ginny/ginny/middleware"
+	"github.com/gorillazer/ginny/logg"
+	"github.com/gorillazer/ginny/middleware"
 	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
 )

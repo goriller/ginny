@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"git.code.oa.com/Ginny/ginny/utils"
+	"github.com/gorillazer/ginny/utils"
 )
 
 // emptyField

@@ -8,7 +8,7 @@
 package logg
 
 import (
-	"git.code.oa.com/Ginny/ginny/trace"
+	"github.com/gorillazer/ginny/trace"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

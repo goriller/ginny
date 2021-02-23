@@ -10,7 +10,7 @@ package confiy
 import (
 	"time"
 
-	"git.code.oa.com/Ginny/ginny/logg"
+	"github.com/gorillazer/ginny/logg"
 	"github.com/jinzhu/configor"
 )
 
