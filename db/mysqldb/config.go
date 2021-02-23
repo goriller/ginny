@@ -7,20 +7,20 @@ import (
 
 // Config DB基础配置
 type Config struct {
-	WDB         Source   `yaml:"wdb"`
-	RDBs        []Source `yaml:"rdbs"`
-	DBName      string   `yaml:"dbname"`
-	MaxOpenConn int      `yaml:"max_open_conn"`
-	MaxIdleConn int      `yaml:"max_idle_conn"`
-	MaxLifetime int      `yaml:"max_lifetime"`
-	Keepalive   int      `yaml:"keepalive"`
+	WDB         Source   `json:"wdb" yaml:"wdb"`
+	RDBs        []Source `json:"rdbs" yaml:"rdbs"`
+	DBName      string   `json:"dbname" yaml:"dbname"`
+	MaxOpenConn int      `json:"max_open_conn" yaml:"max_open_conn"`
+	MaxIdleConn int      `json:"max_idle_conn" yaml:"max_idle_conn"`
+	MaxLifetime int      `json:"max_lifetime" yaml:"max_lifetime"`
+	Keepalive   int      `json:"keepalive" yaml:"keepalive"`
 }
 
 // Source DB部署实例数据源配置
 type Source struct {
-	Host string `yaml:"host"`
-	User string `yaml:"user"`
-	Pass string `yaml:"pass"`
+	Host string `json:"host" yaml:"host"`
+	User string `json:"user" yaml:"user"`
+	Pass string `json:"pass" yaml:"pass"`
 }
 
 // String 打印可输出的配置

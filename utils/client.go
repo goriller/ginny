@@ -84,11 +84,11 @@ func HTTPRequest(method, path string, bodyData interface{}, header map[string]st
 }
 
 //HTTPPost Post请求
-func HTTPPost(path string, bodyData interface{}, rsp interface{}) ([]byte, error) {
-	return HTTPRequest(http.MethodPost, path, bodyData, nil, rsp)
+func HTTPPost(path string, bodyData interface{}, header map[string]string, rsp interface{}) ([]byte, error) {
+	return HTTPRequest(http.MethodPost, path, bodyData, header, rsp)
 }
 
 //HTTPGet Get请求
-func HTTPGet(path string, rsp interface{}) ([]byte, error) {
-	return HTTPRequest(http.MethodGet, path, nil, nil, rsp)
+func HTTPGet(path string, header map[string]string, rsp interface{}) ([]byte, error) {
+	return HTTPRequest(http.MethodGet, path, nil, header, rsp)
 }
