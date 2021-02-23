@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/gorillazer/ginny/logg"
 	"github.com/didi/gendry/builder"
 	"github.com/didi/gendry/scanner"
+	"github.com/gorillazer/ginny/logg"
 )
 
 func init() {

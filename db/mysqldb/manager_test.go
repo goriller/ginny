@@ -1,22 +1,16 @@
 package mysqldb
 
 import (
-	"io/ioutil"
 	"testing"
 
-	yaml "gopkg.in/yaml.v2"
+	"github.com/gorillazer/ginny/confiy"
 )
 
 // 连接测试、配置文件测试
 func TestNewManager(t *testing.T) {
-	data, err := ioutil.ReadFile("./db_config.yaml")
-	if err != nil {
-		t.Fatal(err)
-	}
 	cfg := &Config{}
-	if err := yaml.Unmarshal(data, cfg); err != nil {
-		t.Fatal(err)
-	}
+	confiy.Init().LoadConf(cfg, "./db_config.yaml")
+
 	t.Log(cfg)
 
 	mgr, err := NewManager(cfg)

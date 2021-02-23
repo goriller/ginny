@@ -3,10 +3,10 @@ package ginny
 import (
 	"errors"
 
-	"github.com/gorillazer/ginny/logg"
-	"github.com/gorillazer/ginny/middleware"
 	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
+	"github.com/gorillazer/ginny/logg"
+	"github.com/gorillazer/ginny/middleware"
 )
 
 // Application

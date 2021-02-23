@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gorillazer/ginny/logg"
 	"github.com/go-redis/redis/v8"
+	"github.com/gorillazer/ginny/logg"
 	"go.uber.org/zap"
 )
 

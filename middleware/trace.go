@@ -1,9 +1,9 @@
 package middleware
 
 import (
+	"github.com/gin-gonic/gin"
 	"github.com/gorillazer/ginny/logg"
 	"github.com/gorillazer/ginny/trace"
-	"github.com/gin-gonic/gin"
 )
 
 // Trace 链路跟踪

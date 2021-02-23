@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gorillazer/ginny/logg"
 	mapset "github.com/deckarep/golang-set"
+	"github.com/gorillazer/ginny/logg"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"

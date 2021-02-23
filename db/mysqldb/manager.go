@@ -7,8 +7,8 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/gorillazer/ginny/logg"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/gorillazer/ginny/logg"
 )
 
 // Manager 数据库管理器 读写分离 仅对同一业务库
