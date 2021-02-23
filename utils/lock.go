@@ -1,27 +1,23 @@
 package utils
 
 import (
+	"context"
 	"fmt"
-	"log"
 
-	"github.com/gomodule/redigo/redis"
+	"github.com/go-redis/redis/v8"
 )
 
 // Lock
 type Lock struct {
 	resource string
 	token    string
-	conn     redis.Conn
+	client   redis.UniversalClient
 	timeout  int
 }
 
 // tryLock
-func (lock *Lock) tryLock() (ok bool, err error) {
-	_, err = redis.String(lock.conn.Do("SET", lock.key(), lock.token, "EX", int(lock.timeout), "NX"))
-	if err == redis.ErrNil {
-		// The lock was not successful, it already exists.
-		return false, nil
-	}
+func (lock *Lock) tryLock(ctx context.Context) (ok bool, err error) {
+	err = lock.client.Do(ctx, "SET", lock.key(), lock.token, "EX", int(lock.timeout), "NX").Err()
 	if err != nil {
 		return false, err
 	}
@@ -29,8 +25,8 @@ func (lock *Lock) tryLock() (ok bool, err error) {
 }
 
 // Unlock
-func (lock *Lock) Unlock() (err error) {
-	_, err = lock.conn.Do("del", lock.key())
+func (lock *Lock) Unlock(ctx context.Context) (err error) {
+	err = lock.client.Do(ctx, "del", lock.key()).Err()
 	return
 }
 
@@ -40,27 +36,24 @@ func (lock *Lock) key() string {
 }
 
 // AddTimeout
-func (lock *Lock) AddTimeout(exTime int64) (ok bool, err error) {
-	ttlTime, err := redis.Int64(lock.conn.Do("TTL", lock.key()))
+func (lock *Lock) AddTimeout(ctx context.Context, exTime int64) (ok bool, err error) {
+	ttlTime, err := lock.client.Do(ctx, "TTL", lock.key()).Int64()
 	if err != nil {
-		log.Fatal("redisdb get failed:", err)
+		return false, err
 	}
 	if ttlTime > 0 {
-		_, err := redis.String(lock.conn.Do("SET", lock.key(), lock.token, "EX", int(ttlTime+exTime)))
-		if err == redis.ErrNil {
-			return false, nil
-		}
+		err := lock.client.Do(ctx, "SET", lock.key(), lock.token, "EX", int(ttlTime+exTime)).Err()
 		if err != nil {
 			return false, err
 		}
 	}
-	return false, nil
+	return true, nil
 }
 
 // TryLock
-func TryLock(conn redis.Conn, resource string, token string, timeout int) (lock *Lock, ok bool, err error) {
-	lock = &Lock{resource, token, conn, timeout}
-	ok, err = lock.tryLock()
+func TryLock(ctx context.Context, client redis.UniversalClient, resource string, token string, timeout int) (lock *Lock, ok bool, err error) {
+	lock = &Lock{resource, token, client, timeout}
+	ok, err = lock.tryLock(ctx)
 
 	if !ok || err != nil {
 		lock = nil
