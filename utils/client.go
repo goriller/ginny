@@ -43,7 +43,7 @@ func httpClient() *http.Client {
 }
 
 //HTTPRequest http调用
-func HTTPRequest(ctx context.Context, method, path string, bodyData interface{}, header map[string]string, rsp interface{}) ([]byte, error) {
+func HTTPRequest(ctx context.Context, method, path string, bodyData interface{}, header map[string]string) ([]byte, error) {
 	var body io.Reader
 	if bodyData != nil {
 		bodyRaw, err := json.Marshal(bodyData)
@@ -75,21 +75,15 @@ func HTTPRequest(ctx context.Context, method, path string, bodyData interface{},
 	if httpRsp.StatusCode != 200 {
 		return bin, fmt.Errorf("Status Code:%v", httpRsp.StatusCode)
 	}
-	if rsp != nil {
-		err = json.Unmarshal(bin, rsp)
-		if err != nil {
-			return bin, err
-		}
-	}
 	return bin, nil
 }
 
 //HTTPPost Post请求
-func HTTPPost(ctx context.Context, path string, bodyData interface{}, header map[string]string, rsp interface{}) ([]byte, error) {
-	return HTTPRequest(ctx, http.MethodPost, path, bodyData, header, rsp)
+func HTTPPost(ctx context.Context, path string, bodyData interface{}, header map[string]string) ([]byte, error) {
+	return HTTPRequest(ctx, http.MethodPost, path, bodyData, header)
 }
 
 //HTTPGet Get请求
-func HTTPGet(ctx context.Context, path string, header map[string]string, rsp interface{}) ([]byte, error) {
-	return HTTPRequest(ctx, http.MethodGet, path, nil, header, rsp)
+func HTTPGet(ctx context.Context, path string, header map[string]string) ([]byte, error) {
+	return HTTPRequest(ctx, http.MethodGet, path, nil, header)
 }
