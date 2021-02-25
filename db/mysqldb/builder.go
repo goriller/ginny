@@ -15,18 +15,18 @@ func init() {
 }
 
 // Query by native sql
-func Query(ctx context.Context, m *Manager, sqlStr string, bindMap map[string]interface{}, entity interface{}) error {
+func Query(ctx context.Context, sqlStr string, bindMap map[string]interface{}, entity interface{}) error {
 	var err error
 	cond, val, err := builder.NamedQuery(sqlStr, bindMap)
 	if err != nil {
 		return err
 	}
 	logg.Info(fmt.Sprintf("%v, %v", cond, val))
-	return querySql(ctx, m, cond, val, entity)
+	return querySql(ctx, cond, val, entity)
 }
 
 //Find gets one record from table by condition "where"
-func Find(ctx context.Context, m *Manager, entity interface{}, table string, where map[string]interface{}, selectFields ...[]string) error {
+func Find(ctx context.Context, entity interface{}, table string, where map[string]interface{}, selectFields ...[]string) error {
 	if table == "" {
 		return errors.New("table name couldn't be empty")
 	}
@@ -47,11 +47,11 @@ func Find(ctx context.Context, m *Manager, entity interface{}, table string, whe
 	}
 	logg.Info(fmt.Sprintf("%v, %v", cond, val))
 
-	return querySql(ctx, m, cond, val, entity)
+	return querySql(ctx, cond, val, entity)
 }
 
 //FindAll gets multiple records from table by condition "where"
-func FindAll(ctx context.Context, m *Manager, entity interface{}, table string, where map[string]interface{}, selectFields ...[]string) error {
+func FindAll(ctx context.Context, entity interface{}, table string, where map[string]interface{}, selectFields ...[]string) error {
 	if table == "" {
 		return errors.New("table name couldn't be empty")
 	}
@@ -67,11 +67,11 @@ func FindAll(ctx context.Context, m *Manager, entity interface{}, table string, 
 	}
 	logg.Info(fmt.Sprintf("%v, %v", cond, val))
 
-	return querySql(ctx, m, cond, val, entity)
+	return querySql(ctx, cond, val, entity)
 }
 
 // Execute by native sql
-func Execute(ctx context.Context, m *Manager, sqlStr string, bindMap map[string]interface{}) (int64, error) {
+func Execute(ctx context.Context, sqlStr string, bindMap map[string]interface{}) (int64, error) {
 	var err error
 	cond, val, err := builder.NamedQuery(sqlStr, bindMap)
 	if err != nil {
@@ -79,11 +79,11 @@ func Execute(ctx context.Context, m *Manager, sqlStr string, bindMap map[string]
 	}
 	logg.Info(fmt.Sprintf("%v, %v", cond, val))
 
-	return execSql(ctx, m, cond, val)
+	return execSql(ctx, cond, val)
 }
 
 //Insert inserts an array of data into table
-func Insert(ctx context.Context, m *Manager, table string, data []map[string]interface{}) (int64, error) {
+func Insert(ctx context.Context, table string, data []map[string]interface{}) (int64, error) {
 	if table == "" {
 		return 0, errors.New("table name couldn't be empty")
 	}
@@ -93,11 +93,11 @@ func Insert(ctx context.Context, m *Manager, table string, data []map[string]int
 	}
 	logg.Info(fmt.Sprintf("%v, %v", cond, val))
 
-	return execSql(ctx, m, cond, val)
+	return execSql(ctx, cond, val)
 }
 
 //Update updates the table COLUMNS
-func Update(ctx context.Context, m *Manager, table string, where, data map[string]interface{}) (int64, error) {
+func Update(ctx context.Context, table string, where, data map[string]interface{}) (int64, error) {
 	if table == "" {
 		return 0, errors.New("table name couldn't be empty")
 	}
@@ -107,11 +107,11 @@ func Update(ctx context.Context, m *Manager, table string, where, data map[strin
 	}
 	logg.Info(fmt.Sprintf("%v, %v", cond, val))
 
-	return execSql(ctx, m, cond, val)
+	return execSql(ctx, cond, val)
 }
 
 // Delete deletes matched records in COLUMNS
-func Delete(ctx context.Context, m *Manager, table string, where map[string]interface{}) (int64, error) {
+func Delete(ctx context.Context, table string, where map[string]interface{}) (int64, error) {
 	if table == "" {
 		return 0, errors.New("table name couldn't be empty")
 	}
@@ -121,12 +121,12 @@ func Delete(ctx context.Context, m *Manager, table string, where map[string]inte
 	}
 	logg.Info(fmt.Sprintf("%v, %v", cond, val))
 
-	return execSql(ctx, m, cond, val)
+	return execSql(ctx, cond, val)
 }
 
 // querySql
-func querySql(ctx context.Context, m *Manager, cond string, val []interface{}, entity interface{}) error {
-	stmt, err := m.RDB().PrepareContext(ctx, cond)
+func querySql(ctx context.Context, cond string, val []interface{}, entity interface{}) error {
+	stmt, err := GlobalManager().RDB().PrepareContext(ctx, cond)
 	if err != nil {
 		return err
 	}
@@ -143,8 +143,8 @@ func querySql(ctx context.Context, m *Manager, cond string, val []interface{}, e
 }
 
 // execSql
-func execSql(ctx context.Context, m *Manager, cond string, val []interface{}) (int64, error) {
-	stmt, err := m.WDB().PrepareContext(ctx, cond)
+func execSql(ctx context.Context, cond string, val []interface{}) (int64, error) {
+	stmt, err := GlobalManager().WDB().PrepareContext(ctx, cond)
 	if err != nil {
 		return 0, err
 	}
