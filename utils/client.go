@@ -53,7 +53,7 @@ func HTTPRequest(ctx context.Context, method, path string, bodyData interface{},
 		body = bytes.NewReader(bodyRaw)
 	}
 
-	req, err := http.NewRequest(method, path, body)
+	req, err := http.NewRequestWithContext(ctx, method, path, body)
 	if err != nil {
 		return nil, err
 	}
