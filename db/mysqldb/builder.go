@@ -139,7 +139,11 @@ func querySql(ctx context.Context, cond string, val []interface{}, entity interf
 			stmt.Close()
 		}
 	}()
-	return scanner.ScanClose(rows, entity)
+	err = scanner.ScanClose(rows, entity)
+	if err != nil && err.Error() != "[scanner]: empty result" {
+		return err
+	}
+	return nil
 }
 
 // execSql
