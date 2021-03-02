@@ -2,6 +2,7 @@ package ginny
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -9,41 +10,49 @@ import (
 // H hash map type
 type H map[string]interface{}
 
-// HTTPResponseResult Common reponse
-type HTTPResponseResult struct {
+// responseResult Common reponse
+type responseResult struct {
 	Status  int         `json:"-"` //HTTP Status
-	Code    ErrCode     `json:"code" format:"int"`
+	Code    int         `json:"code" format:"int"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"` //`json:"data,omitempty"`不忽略字段输出null,方便调用方判断
 	Err     error       `json:"-"`    //错误
-
-	codeMap map[ErrCode]string `json:"-"` //项目自定义错误信息
 }
 
 // codeMap
-var codeMap map[ErrCode]string
+var codeMap map[int]string
 
-// SetCodeMap
-func SetCodeMap(m map[ErrCode]string) {
+// SetCodeMap set response code map
+func SetCodeMap(m map[int]string) {
 	codeMap = m
 }
 
 // Error get error
-func (r *HTTPResponseResult) Error() string {
-	if r.Err != nil {
-		return r.Err.Error()
-	}
-	return r.Message
-}
-
-// Msg automatic matching message
-func (r *HTTPResponseResult) Msg() string {
+func (r *responseResult) Error() string {
 	if r.Message != "" {
 		return r.Message
 	}
-	if r.codeMap != nil {
+	if r.Err != nil {
+		str := r.Err.Error()
+		if codeMap != nil {
+			if c, err := strconv.Atoi(str); err == nil {
+				r.Code = c
+				r.Message = r.Msg()
+			}
+		}
+		return str
+	}
+	return ""
+}
+
+// Msg automatic matching message
+func (r *responseResult) Msg() string {
+	if r.Message != "" {
+		return r.Message
+	}
+	if codeMap != nil {
 		// matching custom message
-		if str, ok := r.codeMap[r.Code]; ok {
+		if str, ok := codeMap[r.Code]; ok {
 			return str
 		}
 	}
@@ -55,10 +64,7 @@ func (r *HTTPResponseResult) Msg() string {
 }
 
 // response API standard output
-func response(ctx *gin.Context, r *HTTPResponseResult) {
-	if r.Message == "" {
-		r.Message = r.Msg()
-	}
+func response(ctx *gin.Context, r *responseResult) {
 	if r.Err == nil {
 		if r.Status == 0 {
 			r.Status = http.StatusOK
@@ -66,154 +72,72 @@ func response(ctx *gin.Context, r *HTTPResponseResult) {
 		if r.Code == 0 {
 			r.Code = success
 		}
+		r.Message = r.Msg()
+
 	} else {
 		r.Data = nil
 		if r.Status == 0 {
 			r.Status = http.StatusInternalServerError
 		}
-		if r.Message == "" {
-			r.Message = r.Error()
-		}
 		if r.Code == 0 {
 			r.Code = failed
 		}
-		// error log
-		//log.ErrorContext(ctx, r.Message,
-		//	zap.Error(r.Err),
-		//)
+		if r.Message == "" {
+			r.Message = r.Error()
+		}
 	}
 	ctx.JSON(r.Status, r)
 }
 
 // ResponseSuccess
 func ResponseSuccess(ctx *gin.Context, data interface{}) {
-	resp := NewResultBuilder()
-	resp.Status(http.StatusOK).Code(success)
-	resp.Data(data).Response(ctx)
+	resp := &responseResult{
+		Status: http.StatusOK,
+		Code:   success,
+		Data:   data,
+	}
+
+	response(ctx, resp)
 }
 
 // ResponseError
 //
-// options: [code ErrCode, message string, status int]
+// options: [code int, message string, status int]
 func ResponseError(ctx *gin.Context, err error, options ...interface{}) {
-	resp := NewResultBuilder()
-	resp.Status(http.StatusOK).Code(failed)
+	resp := &responseResult{
+		Status: http.StatusOK,
+		Code:   failed,
+		Err:    err,
+	}
 	pickOptions(resp, options)
-	resp.Error(err).Response(ctx)
+	response(ctx, resp)
 }
-
-// ParamErrorResponse
-func ResponseParamError(ctx *gin.Context, err error) {
-	resp := NewResultBuilder()
-	resp.Status(http.StatusBadRequest).Code(paramsError)
-	resp.Error(err).Response(ctx)
-}
-
-// ResponseAccessDenied
-func ResponseAccessDenied(ctx *gin.Context, err error) {
-	resp := NewResultBuilder()
-	resp.Status(http.StatusForbidden).Code(accessDenied)
-	resp.Error(err).Response(ctx)
-}
-
-// ResponseNotFound
-func ResponseNotFound(ctx *gin.Context, err error) {
-	resp := NewResultBuilder()
-	resp.Status(http.StatusNotFound).Code(notFound)
-	resp.Error(err).Response(ctx)
-}
-
-// ResponseInternalError
-func ResponseInternalError(ctx *gin.Context, err error) {
-	resp := NewResultBuilder()
-	resp.Status(http.StatusInternalServerError).Code(internalError)
-	resp.Error(err).Response(ctx)
-}
-
-// ResponseServerTimeout
-func ResponseServerTimeout(ctx *gin.Context, err error) {
-	resp := NewResultBuilder()
-	resp.Status(http.StatusGatewayTimeout).Code(serverTimeout)
-	resp.Error(err).Response(ctx)
-}
-
-// pickMsg
-//func pickMsg(resp *ResultBuilder, messages ...string) {
-//	if len(messages) > 0 {
-//		resp.Message(messages[0])
-//	}
-//	return
-//}
 
 // pickOptions
-func pickOptions(resp *ResultBuilder, options []interface{}) {
-	for i := 0; i < len(options); i++ {
-		if c, ok := options[i].(int); ok {
-			if c < 100 || c > 510 {
-				continue
+func pickOptions(resp *responseResult, options []interface{}) {
+	lens := len(options)
+	if lens > 2 {
+		if c, ok := options[0].(int); ok {
+			resp.Code = c
+		}
+		if c, ok := options[1].(string); ok {
+			resp.Message = c
+		}
+		if c, ok := options[2].(int); ok {
+			if c >= 100 && c <= 510 {
+				resp.Status = c
 			}
-			resp.Status(c)
-		} else if c, ok := options[i].(ErrCode); ok {
-			resp.Code(c)
-		} else if c, ok := options[i].(string); ok {
-			resp.Message(c)
+		}
+	} else if lens == 2 {
+		if c, ok := options[0].(int); ok {
+			resp.Code = c
+		}
+		if c, ok := options[1].(string); ok {
+			resp.Message = c
+		}
+	} else {
+		if c, ok := options[0].(string); ok {
+			resp.Message = c
 		}
 	}
-}
-
-// ResultBuilder builder pattern code
-type ResultBuilder struct {
-	result *HTTPResponseResult
-}
-
-// NewResultBuilder get instances of ResultBuilder
-func NewResultBuilder(m ...map[ErrCode]string) *ResultBuilder {
-	result := &HTTPResponseResult{
-		codeMap: codeMap,
-	}
-	if m != nil && m[0] != nil {
-		result.codeMap = m[0]
-	}
-	b := &ResultBuilder{result: result}
-	return b
-}
-
-// ErrCode setter
-func (b *ResultBuilder) Code(code ErrCode) *ResultBuilder {
-	b.result.Code = code
-	return b
-}
-
-// Message setter
-func (b *ResultBuilder) Message(message string) *ResultBuilder {
-	b.result.Message = message
-	return b
-}
-
-// Data setter
-func (b *ResultBuilder) Data(data interface{}) *ResultBuilder {
-	b.result.Data = data
-	return b
-}
-
-// Err setter
-func (b *ResultBuilder) Error(err error) *ResultBuilder {
-	b.result.Err = err
-	return b
-}
-
-// Status setter
-func (b *ResultBuilder) Status(status int) *ResultBuilder {
-	b.result.Status = status
-	return b
-}
-
-// Build
-func (b *ResultBuilder) Build() *HTTPResponseResult {
-	return b.result
-}
-
-// Response
-func (b *ResultBuilder) Response(ctx *gin.Context) {
-	response(ctx, b.result)
 }

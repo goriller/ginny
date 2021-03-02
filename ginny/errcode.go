@@ -1,26 +1,27 @@
 package ginny
 
-type ErrCode int
+type (
+	ErrCode   int
+	ErrMsgMap map[int]string
+)
 
 const (
 	// 错误码值定义
-	success       ErrCode = 0
-	failed        ErrCode = 1
-	paramsError   ErrCode = 400
-	accessDenied  ErrCode = 403
-	notFound      ErrCode = 404
-	internalError ErrCode = 500
-	serverTimeout ErrCode = 504
+	success       = 0
+	failed        = 1
+	paramsError   = 400
+	accessDenied  = 403
+	notFound      = 404
+	internalError = 500
+	serverTimeout = 504
 )
 
-type ErrMsgMap map[ErrCode]string
-
 var msgMap = ErrMsgMap{
-	success: "success",
-	//failed:  "failed",
-	//paramsError:   "invalid params",
-	//accessDenied:  "access denied",
-	//notFound:      "not found",
-	//internalError: "internal error",
-	//serverTimeout: "server timeout",
+	success:       "success",
+	failed:        "failed",
+	paramsError:   "invalid params",
+	accessDenied:  "access denied",
+	notFound:      "not found",
+	internalError: "internal error",
+	serverTimeout: "server timeout",
 }
