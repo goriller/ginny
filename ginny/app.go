@@ -1,8 +1,6 @@
 package ginny
 
 import (
-	"errors"
-
 	"github.com/fvbock/endless"
 	"github.com/gin-gonic/gin"
 	"github.com/gorillazer/ginny/logg"
@@ -22,11 +20,11 @@ func New(userMiddlewares ...gin.HandlerFunc) *Application {
 	engine.Use(userMiddlewares...)
 	// NoRoute
 	engine.NoRoute(func(ctx *gin.Context) {
-		ResponseNotFound(ctx, errors.New("not found"))
+		ResponseError(ctx, nil, notFound, "", 400)
 	})
 	// NoMethod
 	engine.NoMethod(func(ctx *gin.Context) {
-		ResponseNotFound(ctx, errors.New("not found"))
+		ResponseError(ctx, nil, notFound, "", 400)
 	})
 
 	return &Application{engine}
