@@ -2,7 +2,6 @@ package ginny
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -13,17 +12,17 @@ type H map[string]interface{}
 // responseResult Common reponse
 type responseResult struct {
 	Status  int         `json:"-"` //HTTP Status
-	Code    int         `json:"code" format:"int"`
+	Code    string      `json:"code" format:"int"`
 	Message string      `json:"message"`
 	Data    interface{} `json:"data"` //`json:"data,omitempty"`不忽略字段输出null,方便调用方判断
 	Err     error       `json:"-"`    //错误
 }
 
 // codeMap
-var codeMap map[int]string
+var codeMap map[string]string
 
 // SetCodeMap set response code map
-func SetCodeMap(m map[int]string) {
+func SetCodeMap(m map[string]string) {
 	codeMap = m
 }
 
@@ -35,10 +34,8 @@ func (r *responseResult) Error() string {
 	if r.Err != nil {
 		str := r.Err.Error()
 		if codeMap != nil {
-			if c, err := strconv.Atoi(str); err == nil {
-				r.Code = c
-				r.Message = r.Msg()
-			}
+			r.Code = str
+			r.Message = r.Msg()
 		}
 		return str
 	}
@@ -69,7 +66,7 @@ func response(ctx *gin.Context, r *responseResult) {
 		if r.Status == 0 {
 			r.Status = http.StatusOK
 		}
-		if r.Code == 0 {
+		if r.Code == "" {
 			r.Code = success
 		}
 		r.Message = r.Msg()
@@ -79,7 +76,7 @@ func response(ctx *gin.Context, r *responseResult) {
 		if r.Status == 0 {
 			r.Status = http.StatusInternalServerError
 		}
-		if r.Code == 0 {
+		if r.Code == "" {
 			r.Code = failed
 		}
 		if r.Message == "" {
@@ -117,7 +114,7 @@ func ResponseError(ctx *gin.Context, err error, options ...interface{}) {
 func pickOptions(resp *responseResult, options []interface{}) {
 	lens := len(options)
 	if lens > 2 {
-		if c, ok := options[0].(int); ok {
+		if c, ok := options[0].(string); ok {
 			resp.Code = c
 		}
 		if c, ok := options[1].(string); ok {
@@ -129,7 +126,7 @@ func pickOptions(resp *responseResult, options []interface{}) {
 			}
 		}
 	} else if lens == 2 {
-		if c, ok := options[0].(int); ok {
+		if c, ok := options[0].(string); ok {
 			resp.Code = c
 		}
 		if c, ok := options[1].(string); ok {
