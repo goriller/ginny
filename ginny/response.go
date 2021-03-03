@@ -134,7 +134,7 @@ func pickOptions(resp *responseResult, options []interface{}) {
 		}
 	} else {
 		if c, ok := options[0].(string); ok {
-			resp.Message = c
+			resp.Code = c
 		}
 	}
 }
