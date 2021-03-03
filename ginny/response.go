@@ -115,6 +115,9 @@ func ResponseError(ctx *gin.Context, err error, options ...interface{}) {
 // pickOptions
 func pickOptions(resp *responseResult, options []interface{}) {
 	lens := len(options)
+	if lens == 0 {
+		return
+	}
 	if lens > 2 {
 		if c, ok := options[0].(string); ok {
 			resp.Code = c
