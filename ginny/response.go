@@ -34,8 +34,10 @@ func (r *responseResult) Error() string {
 	if r.Err != nil {
 		str := r.Err.Error()
 		if codeMap != nil {
-			r.Code = str
-			r.Message = r.Msg()
+			if r.Code == "" {
+				r.Code = str
+			}
+			return r.Msg()
 		}
 		return str
 	}
