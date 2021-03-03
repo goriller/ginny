@@ -78,11 +78,12 @@ func response(ctx *gin.Context, r *responseResult) {
 		if r.Status == 0 {
 			r.Status = http.StatusInternalServerError
 		}
-		if r.Code == "" {
-			r.Code = failed
-		}
+
 		if r.Message == "" {
 			r.Message = r.Error()
+		}
+		if r.Code == "" {
+			r.Code = failed
 		}
 	}
 	ctx.JSON(r.Status, r)
