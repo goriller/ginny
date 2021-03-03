@@ -51,11 +51,11 @@ func NewRDB(prefix string) IRDB {
 // Get get
 func (r *RDB) Get(ctx context.Context, k string) (string, error) {
 	k = r.Prefix + k
-	v := DB().Get(ctx, k)
-	if v.Err() != nil {
-		return "", v.Err()
+	v, err := DB().Get(ctx, k).Result()
+	if err != nil {
+		return "", err
 	}
-	return v.String(), nil
+	return v, nil
 }
 
 // Set set
