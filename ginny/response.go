@@ -78,7 +78,6 @@ func response(ctx *gin.Context, r *responseResult) {
 		if r.Status == 0 {
 			r.Status = http.StatusInternalServerError
 		}
-
 		if r.Message == "" {
 			r.Message = r.Error()
 		}
@@ -106,8 +105,8 @@ func ResponseSuccess(ctx *gin.Context, data interface{}) {
 func ResponseError(ctx *gin.Context, err error, options ...interface{}) {
 	resp := &responseResult{
 		Status: http.StatusOK,
-		Code:   failed,
-		Err:    err,
+		// Code:   failed,
+		Err: err,
 	}
 	pickOptions(resp, options)
 	response(ctx, resp)
