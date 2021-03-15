@@ -41,5 +41,6 @@ func Listen(host, port, mode string, router *Application) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
