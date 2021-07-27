@@ -50,9 +50,9 @@ func NewOptions(v *viper.Viper) (*Options, error) {
 	return o, err
 }
 
-type InitControllers func(r *gin.Engine)
+type InitHandlers func(r *gin.Engine)
 
-func NewRouter(o *Options, logger *zap.Logger, init InitControllers, tracer opentracing.Tracer) *gin.Engine {
+func NewRouter(o *Options, logger *zap.Logger, init InitHandlers, tracer opentracing.Tracer) *gin.Engine {
 	// 配置gin
 	gin.SetMode(o.Mode)
 	r := gin.New()
