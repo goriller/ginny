@@ -25,10 +25,10 @@ func New(path string) (*viper.Viper, error) {
 		return nil, err
 	}
 	log.Println("Getting environment variables...")
-	for _, k := range viper.AllKeys() {
-		value := viper.GetString(k)
+	for _, k := range v.AllKeys() {
+		value := v.GetString(k)
 		if strings.HasPrefix(value, "${") && strings.HasSuffix(value, "}") {
-			viper.Set(k, getEnv(strings.TrimSuffix(strings.TrimPrefix(value, "${"), "}")))
+			v.Set(k, getEnv(strings.TrimSuffix(strings.TrimPrefix(value, "${"), "}")))
 		}
 	}
 
