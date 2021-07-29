@@ -60,9 +60,17 @@ func isIntranetIpv4(ip string) bool {
 	if strings.HasPrefix(ip, "192.168.") ||
 		strings.HasPrefix(ip, "169.254.") ||
 		strings.HasPrefix(ip, "172.") ||
-		strings.HasPrefix(ip, "10.30.") ||
-		strings.HasPrefix(ip, "10.31.") {
+		strings.HasPrefix(ip, "10.") {
 		return true
 	}
 	return false
+}
+
+// GetAvailablePort returns a port at random
+func GetAvailablePort() int {
+	l, _ := net.Listen("tcp", ":0") // listen on localhost
+	defer l.Close()
+	port := l.Addr().(*net.TCPAddr).Port
+
+	return port
 }

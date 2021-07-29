@@ -22,6 +22,7 @@ import (
 )
 
 type Options struct {
+	Host string
 	Port int
 	Mode string
 }
@@ -92,7 +93,8 @@ func (s *Server) Start() error {
 		s.port = util.GetAvailablePort()
 	}
 
-	s.host = util.GetLocalIP4()
+	// s.host = util.GetLocalIP4()
+	s.host = s.o.Host
 
 	if s.host == "" {
 		return errors.New("get local ipv4 error")
