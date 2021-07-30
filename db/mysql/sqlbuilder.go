@@ -14,8 +14,8 @@ func init() {
 	scanner.SetTagName("json")
 }
 
-// SqlBuilderProvider
-var SqlBuilderProvider = wire.NewSet(NewSqlBuilder, wire.Bind(new(ISqlBuilder), new(*SqlBuilder)))
+// Provider
+var Provider = wire.NewSet(NewSqlBuilder, wire.Bind(new(ISqlBuilder), new(*SqlBuilder)))
 
 // ISqlBuilder
 type ISqlBuilder interface{}
