@@ -9,48 +9,48 @@ import (
 	"github.com/gorillazer/ginny/transports/grpc"
 	"github.com/gorillazer/ginny/transports/http"
 	"github.com/pkg/errors"
+	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
 // Application
 type Application struct {
 	name       string
+	version    string
 	logger     *zap.Logger
 	httpServer *http.Server
 	grpcServer *grpc.Server
 }
 
 // Option
-type Option func(app *Application) error
-
-// HttpServerOption
-func HttpServerOption(svr *http.Server) Option {
-	return func(app *Application) error {
-		svr.Application(app.name)
-		app.httpServer = svr
-
-		return nil
-	}
+type Option struct {
+	Name    string
+	Version string
 }
 
-// GrpcServerOption
-func GrpcServerOption(svr *grpc.Server) Option {
-	return func(app *Application) error {
-		svr.Application(app.name)
-		app.grpcServer = svr
-		return nil
+// NewOption
+func NewOption(v *viper.Viper, logger *zap.Logger) (*Option, error) {
+	var err error
+	o := new(Option)
+	if err = v.UnmarshalKey("app", o); err != nil {
+		return nil, errors.Wrap(err, "unmarshal app option error")
 	}
+
+	logger.Info("load application options success")
+
+	return o, err
 }
 
-// New
-func New(name string, logger *zap.Logger, options ...Option) (*Application, error) {
+// NewApp
+func NewApp(option *Option, logger *zap.Logger, serves ...Serve) (*Application, error) {
 	app := &Application{
-		name:   name,
-		logger: logger.With(zap.String("type", "Application")),
+		name:    option.Name,
+		version: option.Version,
+		logger:  logger.With(zap.String("type", "Application")),
 	}
 
-	for _, option := range options {
-		if err := option(app); err != nil {
+	for _, o := range serves {
+		if err := o(app); err != nil {
 			return nil, err
 		}
 	}
@@ -58,8 +58,9 @@ func New(name string, logger *zap.Logger, options ...Option) (*Application, erro
 	return app, nil
 }
 
-//
+// Start
 func (a *Application) Start() error {
+
 	if a.httpServer != nil {
 		if err := a.httpServer.Start(); err != nil {
 			return errors.Wrap(err, "http server start error")
@@ -99,4 +100,4 @@ func (a *Application) AwaitSignal() {
 	}
 }
 
-var ProviderSet = wire.NewSet(New)
+var AppProviderSet = wire.NewSet(NewOption, NewApp)
