@@ -3,12 +3,7 @@ package mysql
 import (
 	"context"
 	"database/sql"
-
-	"github.com/google/wire"
 )
-
-// QueryProvider
-var QueryProvider = wire.NewSet(wire.Struct(new(Query), "*"), wire.Bind(new(IQuery), new(*Query)))
 
 // IQuery
 type IQuery interface {

@@ -14,16 +14,15 @@ func init() {
 	scanner.SetTagName("json")
 }
 
-// Provider
-var Provider = wire.NewSet(NewSqlBuilder, wire.Bind(new(ISqlBuilder), new(*SqlBuilder)))
+// SqlBuilderProvider
+var SqlBuilderProvider = wire.NewSet(NewSqlBuilder, wire.Bind(new(ISqlBuilder), new(*SqlBuilder)))
 
 // ISqlBuilder
 type ISqlBuilder interface{}
 
 // SqlBuilder
 type SqlBuilder struct {
-	Manager *Manager
-	query   *Query
+	Query *Query
 }
 
 // NewSqlBuilder
@@ -33,15 +32,14 @@ func NewSqlBuilder(config *Config) *SqlBuilder {
 		log.Fatalf("mysql manager error: %s", err.Error())
 	}
 	return &SqlBuilder{
-		Manager: mgr,
-		query: &Query{
+		Query: &Query{
 			Manager: mgr,
 		},
 	}
 }
 
-// Query by native sql
-func (s *SqlBuilder) Query(ctx context.Context, sqlStr string, bindMap map[string]interface{}, entity interface{}) error {
+// SqlQuery by native sql
+func (s *SqlBuilder) SqlQuery(ctx context.Context, sqlStr string, bindMap map[string]interface{}, entity interface{}) error {
 	var err error
 	cond, val, err := builder.NamedQuery(sqlStr, bindMap)
 	if err != nil {
@@ -152,7 +150,7 @@ func (s *SqlBuilder) Delete(ctx context.Context, table string, where map[string]
 
 // querySql
 func (s *SqlBuilder) querySql(ctx context.Context, cond string, val []interface{}, entity interface{}) error {
-	stmt, err := s.Manager.RDB().PrepareContext(ctx, cond)
+	stmt, err := s.Query.Manager.RDB().PrepareContext(ctx, cond)
 	if err != nil {
 		return err
 	}
@@ -174,7 +172,7 @@ func (s *SqlBuilder) querySql(ctx context.Context, cond string, val []interface{
 
 // execSql
 func (s *SqlBuilder) execSql(ctx context.Context, cond string, val []interface{}) (int64, error) {
-	stmt, err := s.Manager.WDB().PrepareContext(ctx, cond)
+	stmt, err := s.Query.Manager.WDB().PrepareContext(ctx, cond)
 	if err != nil {
 		return 0, err
 	}
