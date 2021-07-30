@@ -20,7 +20,7 @@ func NewConfig(v *viper.Viper, logger *zap.Logger) (*Config, error) {
 		return nil, errors.Wrap(err, "unmarshal app option error")
 	}
 
-	logger.Info("load application options success")
+	logger.Info("load options success")
 
 	return o, err
 }

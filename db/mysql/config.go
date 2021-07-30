@@ -7,13 +7,13 @@ import (
 
 // Config DB基础配置
 type Config struct {
-	WDB         Source   `json:"wdb" yaml:"wdb"`
-	RDBs        []Source `json:"rdbs" yaml:"rdbs"`
-	DBName      string   `json:"dbname" yaml:"dbname"`
-	MaxOpenConn int      `json:"max_open_conn" yaml:"max_open_conn"`
-	MaxIdleConn int      `json:"max_idle_conn" yaml:"max_idle_conn"`
-	MaxLifetime int      `json:"max_lifetime" yaml:"max_lifetime"`
-	Keepalive   int      `json:"keepalive" yaml:"keepalive"`
+	WDB         Source `json:"wdb" yaml:"wdb"`
+	RDB         Source `json:"rdb" yaml:"rdb"` // 多个RDB host使用,分隔
+	DBName      string `json:"dbname" yaml:"dbname"`
+	MaxOpenConn int    `json:"max_open_conn" yaml:"max_open_conn"`
+	MaxIdleConn int    `json:"max_idle_conn" yaml:"max_idle_conn"`
+	MaxLifetime int    `json:"max_lifetime" yaml:"max_lifetime"`
+	Keepalive   int    `json:"keepalive" yaml:"keepalive"`
 }
 
 // Source DB部署实例数据源配置
@@ -33,7 +33,7 @@ func (c *Config) String() string {
 	var str strings.Builder
 	fmt.Fprintln(&str, "mysql confiy:")
 	fmt.Fprintln(&str, "wdb:", c.WDB)
-	fmt.Fprintln(&str, "rdbs:", c.RDBs)
+	fmt.Fprintln(&str, "rdb:", c.RDB)
 	fmt.Fprintln(&str, "dbname:", c.DBName)
 	fmt.Fprintln(&str, "max_open_conn:", c.MaxOpenConn)
 	fmt.Fprintln(&str, "max_idle_conn:", c.MaxIdleConn)

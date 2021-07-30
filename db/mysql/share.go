@@ -18,7 +18,13 @@ func NewConfig(v *viper.Viper, logger *zap.Logger) (*Config, error) {
 		return nil, errors.Wrap(err, "unmarshal app option error")
 	}
 
-	logger.Info("load application options success")
+	if o.RDB.Host == "" {
+		o.RDB.Host = o.WDB.Host
+		o.RDB.User = o.WDB.User
+		o.RDB.Pass = o.WDB.Pass
+	}
+
+	logger.Info("load options success")
 
 	return o, err
 }
