@@ -36,6 +36,7 @@ require (
 	go.uber.org/zap v1.18.1
 	golang.org/x/crypto v0.0.0-20200930160638-afb6bcd081ae // indirect
 	google.golang.org/grpc v1.39.0
+	gopkg.in/go-playground/validator.v8 v8.18.2
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
 	gorm.io/gorm v1.21.12
 )

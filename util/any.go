@@ -804,3 +804,63 @@ func Contains(slice interface{}, target interface{}) bool {
 
 	return false
 }
+
+// IsEmptyString 判断是否空字符串
+func IsEmptyString(text string) bool {
+	s := strings.TrimSpace(text)
+	return len(s) <= 0
+}
+
+// IsSpaceOrEmpty 判断是否空字符串,字符串仅包括空格也返回true
+func IsSpaceOrEmpty(text string) bool {
+	count := len(text)
+	if count == 0 {
+		return true
+	}
+
+	for i := 0; i < count; i++ {
+		if text[i] != ' ' {
+			return false
+		}
+	}
+	return true
+}
+
+// RemoveSliceElement 剔除切片元素
+func RemoveSliceElement(a []string, b string) []string {
+	ret := make([]string, 0, len(a))
+	for _, val := range a {
+		if val != b {
+			ret = append(ret, val)
+		}
+	}
+	return ret
+}
+
+// DistinctStringSlice 切片去重
+func DistinctStringSlice(strList []string) []string {
+	distinctMap := map[string]bool{}
+	var distinctList []string
+
+	for _, str := range strList {
+		if distinctMap[str] {
+			continue
+		} else {
+			distinctMap[str] = true
+			distinctList = append(distinctList, str)
+		}
+	}
+	return distinctList
+}
+
+// InStringSlice 判断字符串是否存在字符串切片内
+func InStringSlice(strFind string, strList []string) bool {
+	flag := false
+	for _, str := range strList {
+		if str == strFind {
+			flag = true
+			break
+		}
+	}
+	return flag
+}
