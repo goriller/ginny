@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"log"
 	"math/rand"
-	"strings"
 	"time"
 
 	_ "github.com/go-sql-driver/mysql" // init mysql driver
@@ -31,18 +30,12 @@ func NewManager(config *Config) (*Manager, error) {
 		return nil, err
 	}
 	// RDB多个
-	var rdbs []string
-	if strings.Contains(config.RDB.Host, ",") {
-		rdbs = strings.Split(config.RDB.Host, ",")
-	} else {
-		rdbs = []string{config.RDB.Host}
-	}
-	readDBs := make([]*sql.DB, 0, len(rdbs))
-	for i := 0; i < len(rdbs); i++ {
+	readDBs := make([]*sql.DB, 0, len(config.RDBs))
+	for i := 0; i < len(config.RDBs); i++ {
 		source := &Source{
-			Host: rdbs[i],
-			User: config.RDB.User,
-			Pass: config.RDB.Pass,
+			Host: config.RDBs[i].Host,
+			User: config.RDBs[i].User,
+			Pass: config.RDBs[i].Pass,
 		}
 		readDB, err := newDB(source, config)
 		if err != nil {
