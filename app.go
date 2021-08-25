@@ -6,8 +6,8 @@ import (
 	"syscall"
 
 	"github.com/google/wire"
-	"github.com/gorillazer/ginny/transports/grpc"
-	"github.com/gorillazer/ginny/transports/http"
+	"github.com/gorillazer/ginny-serve/grpc"
+	"github.com/gorillazer/ginny-serve/http"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"

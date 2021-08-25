@@ -1,8 +1,8 @@
 package ginny
 
 import (
-	"github.com/gorillazer/ginny/transports/grpc"
-	"github.com/gorillazer/ginny/transports/http"
+	"github.com/gorillazer/ginny-serve/grpc"
+	"github.com/gorillazer/ginny-serve/http"
 )
 
 // Serve
