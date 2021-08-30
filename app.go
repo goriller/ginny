@@ -61,23 +61,18 @@ func NewApp(option *Option, logger *zap.Logger, serves ...Serve) (*Application, 
 
 // Start
 func (a *Application) Start(opts ...options.ServerOptional) error {
-	o := &options.ServerOption{}
-	for _, opt := range opts {
-		opt(o)
-	}
-
 	if a.HttpServer == nil && a.GrpcServer == nil {
 		return errors.New("no server provider")
 	}
 
 	if a.HttpServer != nil {
-		if err := a.HttpServer.Start(o); err != nil {
+		if err := a.HttpServer.Start(opts...); err != nil {
 			return errors.Wrap(err, "http server start error")
 		}
 	}
 
 	if a.GrpcServer != nil {
-		if err := a.GrpcServer.Start(o); err != nil {
+		if err := a.GrpcServer.Start(opts...); err != nil {
 			return errors.Wrap(err, "grpc server start error")
 		}
 	}
