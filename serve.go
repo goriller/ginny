@@ -6,6 +6,16 @@ import (
 	"github.com/gorillazer/ginny-serve/http"
 )
 
+// Server
+type Server struct {
+	HttpServer *http.Server
+	GrpcServer *grpc.Server
+}
+
+func NewServe() {
+
+}
+
 // Serve
 type Serve func(app *Application) error
 
