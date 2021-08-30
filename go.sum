@@ -212,10 +212,12 @@ github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1 h1:EGx4pi6eqNxGa
 github.com/gopherjs/gopherjs v0.0.0-20181017120253-0766667cb4d1/go.mod h1:wJfORRmW1u3UXTncJ5qlYoELFm8eSnnEO6hX4iZ3EWY=
 github.com/gorillazer/ginny-consul v0.0.2 h1:gDux0ENvBsbtpMrZtcMwc2kZIp61HXi4+//xG4CsOsc=
 github.com/gorillazer/ginny-consul v0.0.2/go.mod h1:4jFz2MnhbOnHSqSHef4HgTKM0LOuPVT/5EmHeszCz+E=
-github.com/gorillazer/ginny-serve v0.0.6 h1:3dP42IOvQfVMcKwnv+tzeryRAF97ratM/D+yfdoSjWw=
-github.com/gorillazer/ginny-serve v0.0.6/go.mod h1:RHqb2JOO7IDyQ0vCA+5dQCLwVns9LedDLDVwtiUV2qk=
-github.com/gorillazer/ginny-util v0.0.0-20210824061306-90e4d3ae4237 h1:0c8Gok1xxiaWg+oeJVXqWxTdCAJKR+bWZBaVr0pmSEs=
-github.com/gorillazer/ginny-util v0.0.0-20210824061306-90e4d3ae4237/go.mod h1:MQU8JX+8HitAlpAxnY2PeTd0KBj3CgFO3eYwb9QQZQ0=
+github.com/gorillazer/ginny-prometheus v0.0.1 h1:92S77jkU5Pv06k1jsD+FgSpmyYJUrVEtecunRQtvu0Y=
+github.com/gorillazer/ginny-prometheus v0.0.1/go.mod h1:4l1+0wBF3DDiW4FXdAiYpxbzaqv3E3yIHuZztVPHI/4=
+github.com/gorillazer/ginny-serve v0.0.7 h1:ZlWZiPUSjc+d+ZmEWOEq7PONDjvc9ibxgN3a49W1QF8=
+github.com/gorillazer/ginny-serve v0.0.7/go.mod h1:EaiFPGK0RbmvnIhJ+icTSNre9x+1EUsid+ZgMbm9bts=
+github.com/gorillazer/ginny-util v0.0.1 h1:lYNOLy9HSJD6v+76wT5bd+NX0fDJInsK0P7vOvLqsus=
+github.com/gorillazer/ginny-util v0.0.1/go.mod h1:MQU8JX+8HitAlpAxnY2PeTd0KBj3CgFO3eYwb9QQZQ0=
 github.com/grpc-ecosystem/go-grpc-middleware v1.3.0 h1:+9834+KizmvFV7pXQGSXQTsaWhq2GjuNUt0aUU0YBYw=
 github.com/grpc-ecosystem/go-grpc-middleware v1.3.0/go.mod h1:z0ButlSOZa5vEBq9m2m2hlwIgKw+rp3sdCBRoJY+30Y=
 github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0 h1:Ovs26xHkKqVztRpIrF/92BcuyuQ/YW4NSIpoGtfXNho=

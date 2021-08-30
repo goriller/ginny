@@ -90,13 +90,13 @@ func (a *Application) AwaitSignal() {
 		a.logger.Info("receive a signal", zap.String("signal", s.String()))
 		if a.HttpServer != nil {
 			if err := a.HttpServer.Stop(); err != nil {
-				a.logger.Warn("stop http server error", zap.Error(err))
+				a.logger.Error("stop http server error", zap.Error(err))
 			}
 		}
 
 		if a.GrpcServer != nil {
 			if err := a.GrpcServer.Stop(); err != nil {
-				a.logger.Warn("stop grpc server error", zap.Error(err))
+				a.logger.Error("stop grpc server error", zap.Error(err))
 			}
 		}
 
