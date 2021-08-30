@@ -8,6 +8,7 @@ import (
 	"github.com/google/wire"
 	"github.com/gorillazer/ginny-serve/grpc"
 	"github.com/gorillazer/ginny-serve/http"
+	"github.com/gorillazer/ginny-serve/options"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
@@ -15,11 +16,11 @@ import (
 
 // Application
 type Application struct {
-	name       string
-	version    string
+	Name       string
+	Version    string
 	logger     *zap.Logger
-	httpServer *http.Server
-	grpcServer *grpc.Server
+	HttpServer *http.Server
+	GrpcServer *grpc.Server
 }
 
 // Option
@@ -44,8 +45,8 @@ func NewOption(v *viper.Viper, logger *zap.Logger) (*Option, error) {
 // NewApp
 func NewApp(option *Option, logger *zap.Logger, serves ...Serve) (*Application, error) {
 	app := &Application{
-		name:    option.Name,
-		version: option.Version,
+		Name:    option.Name,
+		Version: option.Version,
 		logger:  logger.With(zap.String("type", "Application")),
 	}
 
@@ -59,16 +60,24 @@ func NewApp(option *Option, logger *zap.Logger, serves ...Serve) (*Application, 
 }
 
 // Start
-func (a *Application) Start() error {
+func (a *Application) Start(opts ...options.ServerOptional) error {
+	o := &options.ServerOption{}
+	for _, opt := range opts {
+		opt(o)
+	}
 
-	if a.httpServer != nil {
-		if err := a.httpServer.Start(); err != nil {
+	if a.HttpServer == nil && a.GrpcServer == nil {
+		return errors.New("no server provider")
+	}
+
+	if a.HttpServer != nil {
+		if err := a.HttpServer.Start(o); err != nil {
 			return errors.Wrap(err, "http server start error")
 		}
 	}
 
-	if a.grpcServer != nil {
-		if err := a.grpcServer.Start(); err != nil {
+	if a.GrpcServer != nil {
+		if err := a.GrpcServer.Start(o); err != nil {
 			return errors.Wrap(err, "grpc server start error")
 		}
 	}
@@ -84,14 +93,14 @@ func (a *Application) AwaitSignal() {
 	select {
 	case s := <-c:
 		a.logger.Info("receive a signal", zap.String("signal", s.String()))
-		if a.httpServer != nil {
-			if err := a.httpServer.Stop(); err != nil {
+		if a.HttpServer != nil {
+			if err := a.HttpServer.Stop(); err != nil {
 				a.logger.Warn("stop http server error", zap.Error(err))
 			}
 		}
 
-		if a.grpcServer != nil {
-			if err := a.grpcServer.Stop(); err != nil {
+		if a.GrpcServer != nil {
+			if err := a.GrpcServer.Stop(); err != nil {
 				a.logger.Warn("stop grpc server error", zap.Error(err))
 			}
 		}
