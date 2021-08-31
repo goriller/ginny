@@ -1,4 +1,4 @@
-package ginny
+package binding
 
 import (
 	"fmt"

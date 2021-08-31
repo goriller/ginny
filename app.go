@@ -6,8 +6,6 @@ import (
 	"syscall"
 
 	"github.com/google/wire"
-	"github.com/gorillazer/ginny-serve/grpc"
-	"github.com/gorillazer/ginny-serve/http"
 	"github.com/gorillazer/ginny-serve/options"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -16,11 +14,10 @@ import (
 
 // Application
 type Application struct {
-	Name       string
-	Version    string
-	logger     *zap.Logger
-	HttpServer *http.Server
-	GrpcServer *grpc.Server
+	Name    string
+	Version string
+	logger  *zap.Logger
+	Server  *Server
 }
 
 // Option
@@ -61,18 +58,18 @@ func NewApp(option *Option, logger *zap.Logger, serves ...Serve) (*Application, 
 
 // Start
 func (a *Application) Start(opts ...options.ServerOptional) error {
-	if a.HttpServer == nil && a.GrpcServer == nil {
+	if a.Server.HttpServer == nil && a.Server.GrpcServer == nil {
 		return errors.New("no server provider")
 	}
 
-	if a.HttpServer != nil {
-		if err := a.HttpServer.Start(opts...); err != nil {
+	if a.Server.HttpServer != nil {
+		if err := a.Server.HttpServer.Start(opts...); err != nil {
 			return errors.Wrap(err, "http server start error")
 		}
 	}
 
-	if a.GrpcServer != nil {
-		if err := a.GrpcServer.Start(opts...); err != nil {
+	if a.Server.GrpcServer != nil {
+		if err := a.Server.GrpcServer.Start(opts...); err != nil {
 			return errors.Wrap(err, "grpc server start error")
 		}
 	}
@@ -88,14 +85,14 @@ func (a *Application) AwaitSignal() {
 	select {
 	case s := <-c:
 		a.logger.Info("receive a signal", zap.String("signal", s.String()))
-		if a.HttpServer != nil {
-			if err := a.HttpServer.Stop(); err != nil {
+		if a.Server.HttpServer != nil {
+			if err := a.Server.HttpServer.Stop(); err != nil {
 				a.logger.Error("stop http server error", zap.Error(err))
 			}
 		}
 
-		if a.GrpcServer != nil {
-			if err := a.GrpcServer.Stop(); err != nil {
+		if a.Server.GrpcServer != nil {
+			if err := a.Server.GrpcServer.Stop(); err != nil {
 				a.logger.Error("stop grpc server error", zap.Error(err))
 			}
 		}
