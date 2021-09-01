@@ -47,7 +47,7 @@ func (e *Error) Error() string {
 }
 
 // New 创建一个error，默认为业务错误类型，提高业务开发效率
-func New(code int, msg string) error {
+func New(code int, msg string) *Error {
 	err := &Error{
 		Code: code,
 		Msg:  msg,
@@ -59,7 +59,7 @@ func New(code int, msg string) error {
 }
 
 // Newf 创建一个error，默认为业务错误类型，msg支持格式化字符串
-func Newf(code int, format string, params ...interface{}) error {
+func Newf(code int, format string, params ...interface{}) *Error {
 	msg := fmt.Sprintf(format, params...)
 	return New(code, msg)
 }
