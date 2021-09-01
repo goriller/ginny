@@ -15,7 +15,7 @@ type Response struct {
 	Status   int         `json:"-"`
 	Code     int         `json:"code"`
 	Message  string      `json:"message"`
-	Request  string      `json:"request"`
+	Path     string      `json:"path"`
 	Response interface{} `json:"response,omitempty"`
 }
 
@@ -88,7 +88,7 @@ func Wrapper(handler HandlerFunc) func(c *gin.Context) {
 		} else {
 			resp = r
 		}
-		resp.Request = c.Request.Method + " " + c.Request.URL.String()
+		resp.Path = c.Request.URL.String()
 		c.JSON(resp.Status, resp)
 	}
 }

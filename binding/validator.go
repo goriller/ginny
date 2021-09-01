@@ -4,14 +4,52 @@ import (
 	"reflect"
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/gin-gonic/gin/binding"
-	"gopkg.in/go-playground/validator.v8"
+	util "github.com/gorillazer/ginny-util"
+	"gopkg.in/go-playground/validator.v9"
 )
 
-// Validator
-type Validator interface {
-	Validate() error
+func init() {
+	binding.Validator = &DefaultValidator{}
+}
+
+// DefaultValidator
+type DefaultValidator struct {
+	once     sync.Once
+	validate *validator.Validate
+}
+
+// ValidateStruct
+func (v *DefaultValidator) ValidateStruct(obj interface{}) error {
+	if util.KindOfData(obj) == reflect.Struct {
+		v.lazyinit()
+		if err := v.validate.Struct(obj); err != nil {
+			return error(err)
+		}
+	}
+	return nil
+}
+
+// ValidateVar
+func (v *DefaultValidator) ValidateVar(field interface{}, tag string) error {
+	v.lazyinit()
+	return v.validate.Var(field, tag)
+}
+
+// Engine
+func (v *DefaultValidator) Engine() interface{} {
+	v.lazyinit()
+	return v.validate
+}
+
+func (v *DefaultValidator) lazyinit() {
+	v.once.Do(func() {
+		v.validate = validator.New()
+		v.validate.SetTagName("binding")
+		// add any custom validations etc. here
+	})
 }
 
 // RegisterValidation Custom verification
@@ -29,17 +67,6 @@ func RegisterValidation(fn []validator.Func) error {
 			if err := v.RegisterValidation(getFunctionName(f, '/', '.'), f); err != nil {
 				return err
 			}
-		}
-	}
-	return nil
-}
-
-// Valid
-func Valid(v interface{}) error {
-	// validate
-	if vv, ok := v.(Validator); ok {
-		if err := vv.Validate(); err != nil {
-			return err
 		}
 	}
 	return nil
