@@ -88,7 +88,7 @@ func Wrapper(handler HandlerFunc) func(c *gin.Context) {
 		} else {
 			resp = r
 		}
-		resp.Request = c.Request.Method + " " + c.Request.URL.String()
+		resp.Request = c.Request.URL.String()
 		c.JSON(resp.Status, resp)
 	}
 }
