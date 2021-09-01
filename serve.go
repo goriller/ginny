@@ -19,9 +19,7 @@ type Serve func(app *Application) error
 func HttpServe(svr *http.Server) Serve {
 	return func(app *Application) error {
 		svr.AppName(app.Name)
-		app.Server = &Server{
-			HttpServer: svr,
-		}
+		app.Server.HttpServer = svr
 		return nil
 	}
 }
@@ -31,9 +29,7 @@ func HttpServeWithConsul(svr *http.Server, c *consul.Client) Serve {
 	return func(app *Application) error {
 		svr.AppName(app.Name)
 		svr.ConsulClient(c.Client)
-		app.Server = &Server{
-			HttpServer: svr,
-		}
+		app.Server.HttpServer = svr
 		return nil
 	}
 }
@@ -42,9 +38,7 @@ func HttpServeWithConsul(svr *http.Server, c *consul.Client) Serve {
 func GrpcServe(svr *grpc.Server) Serve {
 	return func(app *Application) error {
 		svr.AppName(app.Name)
-		app.Server = &Server{
-			GrpcServer: svr,
-		}
+		app.Server.GrpcServer = svr
 		return nil
 	}
 }
@@ -54,9 +48,7 @@ func GrpcServeWithConsul(svr *grpc.Server, c *consul.Client) Serve {
 	return func(app *Application) error {
 		svr.AppName(app.Name)
 		svr.ConsulClient(c.Client)
-		app.Server = &Server{
-			GrpcServer: svr,
-		}
+		app.Server.GrpcServer = svr
 		return nil
 	}
 }
