@@ -45,6 +45,7 @@ func NewApp(option *Option, logger *zap.Logger, serves ...Serve) (*Application, 
 		Name:    option.Name,
 		Version: option.Version,
 		logger:  logger.With(zap.String("type", "Application")),
+		Server:  &Server{},
 	}
 
 	for _, o := range serves {
