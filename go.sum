@@ -212,8 +212,8 @@ github.com/gorillazer/ginny-consul v0.0.2 h1:gDux0ENvBsbtpMrZtcMwc2kZIp61HXi4+//
 github.com/gorillazer/ginny-consul v0.0.2/go.mod h1:4jFz2MnhbOnHSqSHef4HgTKM0LOuPVT/5EmHeszCz+E=
 github.com/gorillazer/ginny-prometheus v0.0.1 h1:92S77jkU5Pv06k1jsD+FgSpmyYJUrVEtecunRQtvu0Y=
 github.com/gorillazer/ginny-prometheus v0.0.1/go.mod h1:4l1+0wBF3DDiW4FXdAiYpxbzaqv3E3yIHuZztVPHI/4=
-github.com/gorillazer/ginny-serve v0.0.10 h1:fuE/tmjN1nHSIykryMdFR1g8qlaUMQniBGfdL6+UbV0=
-github.com/gorillazer/ginny-serve v0.0.10/go.mod h1:SWxI4eswxVFFKQUa27+P+sCSMXHykwWnE7X/n7Omqqk=
+github.com/gorillazer/ginny-serve v0.0.12 h1:wLxRct8IAH/EjLHYN4CGfKs3/PccqChIte3ydErb5mI=
+github.com/gorillazer/ginny-serve v0.0.12/go.mod h1:EaiFPGK0RbmvnIhJ+icTSNre9x+1EUsid+ZgMbm9bts=
 github.com/gorillazer/ginny-util v0.0.1/go.mod h1:MQU8JX+8HitAlpAxnY2PeTd0KBj3CgFO3eYwb9QQZQ0=
 github.com/gorillazer/ginny-util v0.0.3 h1:7lbcVcvUdAKfW/+j3wKokY9epo++AjQsf1f96yJ+gVM=
 github.com/gorillazer/ginny-util v0.0.3/go.mod h1:PwTiNR3YE0F5PJ5TBQzezErNJ1BMiWzJC3lBycxUSKA=

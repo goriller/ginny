@@ -6,7 +6,7 @@ require (
 	github.com/gin-gonic/gin v1.7.4
 	github.com/google/wire v0.5.0
 	github.com/gorillazer/ginny-consul v0.0.2
-	github.com/gorillazer/ginny-serve v0.0.10
+	github.com/gorillazer/ginny-serve v0.0.12
 	github.com/gorillazer/ginny-util v0.0.3
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.8.1
