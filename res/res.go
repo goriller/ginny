@@ -72,7 +72,7 @@ func NewResponse(data interface{}, rsp ...Responser) *Response {
 }
 
 // Wrapper
-func Wrapper(handler HandlerFunc) func(c *gin.Context) {
+func Wrapper(handler HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var resp *Response
 		r, err := handler(c)
