@@ -22,20 +22,12 @@ func SetTraceable(x bool) {
 	traceable = x
 }
 
-func callers() []uintptr {
-	var pcs [32]uintptr
-	n := runtime.Callers(3, pcs[:])
-	st := pcs[0:n]
-	return st
-}
-
 // Error 错误码结构 包含 错误码类型 错误码 错误信息
 type Error struct {
 	Code int
 	Msg  string
-	Desc string
 
-	st []uintptr // 调用栈
+	stack []uintptr // 调用栈
 }
 
 // Error 实现error接口，返回error描述
@@ -53,7 +45,7 @@ func New(code int, msg string) *Error {
 		Msg:  msg,
 	}
 	if traceable {
-		err.st = callers()
+		err.stack = callers()
 	}
 	return err
 }
@@ -92,4 +84,11 @@ func Msg(e error) string {
 		return SUCCESS
 	}
 	return err.Msg
+}
+
+func callers() []uintptr {
+	var pcs [32]uintptr
+	n := runtime.Callers(3, pcs[:])
+	st := pcs[0:n]
+	return st
 }
