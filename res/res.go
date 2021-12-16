@@ -73,7 +73,9 @@ func NewResponse(data interface{}, rsp ...Responser) *Response {
 // Wrapper
 func Wrapper(handler HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		var resp *Response
+		var resp = &Response{
+			Status: 200,
+		}
 		r, err := handler(c)
 		if err != nil {
 			switch v := err.(type) {
@@ -85,7 +87,9 @@ func Wrapper(handler HandlerFunc) gin.HandlerFunc {
 				resp = ServerError()
 			}
 		} else {
-			resp = r
+			if r != nil {
+				resp = r
+			}
 		}
 		c.JSON(resp.Status, resp)
 	}
