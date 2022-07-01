@@ -1,6 +1,6 @@
 # [Ginny](https://github.com/gorillazer/ginny)
 
-Ginny framework base on Gin + GRPC, more components to improve development efficiency.
+Ginny framework base on gRPC + gRPC-Gateway, more components to improve development efficiency.
 
 ## Installation
 
