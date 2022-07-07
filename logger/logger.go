@@ -13,7 +13,7 @@ import (
 var (
 	DefaultLogger *zap.Logger
 	// LoggerProviderSet
-	LoggerProviderSet = wire.NewSet(New, NewOptions)
+	LoggerProviderSet = wire.NewSet(NewOptions, NewLogger)
 )
 
 // Options is log configuration struct
@@ -51,8 +51,8 @@ func NewOptions(v *viper.Viper) (*Options, error) {
 	return o, err
 }
 
-// New for init zap log library
-func New(o *Options) (*zap.Logger, error) {
+// NewLogger for init zap log library
+func NewLogger(o *Options) (*zap.Logger, error) {
 	var (
 		err   error
 		level = zap.NewAtomicLevel()
