@@ -1,105 +1,72 @@
 package ginny
 
 import (
-	"os"
-	"os/signal"
-	"syscall"
-
 	"github.com/google/wire"
-	"github.com/gorillazer/ginny-serve/options"
+	"github.com/gorillazer/ginny/config"
+	"github.com/gorillazer/ginny/logger"
+	"github.com/gorillazer/ginny/server"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"
 )
 
+// AppProviderSet
+var AppProviderSet = wire.NewSet(
+	logger.LoggerProviderSet,
+	config.ConfigProviderSet,
+	NewOption, NewApp)
+
 // Application
 type Application struct {
 	Name    string
 	Version string
-	logger  *zap.Logger
-	Server  *Server
+	Option  *Option
+	Logger  *zap.Logger
+	Server  *server.Server
 }
 
 // Option
 type Option struct {
-	Name    string
-	Version string
+	Name     string
+	Version  string
+	GrpcAddr string
+	HttpAddr string
 }
 
 // NewOption
-func NewOption(v *viper.Viper, logger *zap.Logger) (*Option, error) {
+func NewOption(v *viper.Viper) (*Option, error) {
 	var err error
 	o := new(Option)
 	if err = v.UnmarshalKey("app", o); err != nil {
 		return nil, errors.Wrap(err, "unmarshal app option error")
 	}
 
-	logger.Info("load application options success")
-
-	return o, err
+	return o, nil
 }
 
 // NewApp
-func NewApp(option *Option, logger *zap.Logger, serves ...Serve) (*Application, error) {
+func NewApp(option *Option,
+	logger *zap.Logger,
+	regFunc server.RegistrarFunc, opts ...server.Option,
+) (*Application, error) {
 	app := &Application{
 		Name:    option.Name,
 		Version: option.Version,
-		logger:  logger.With(zap.String("type", "Application")),
-		Server:  &Server{},
+		Option:  option,
+		Logger:  logger.With(zap.String("type", "Application")),
+	}
+	opt := []server.Option{
+		server.WithGrpcAddr(option.GrpcAddr),
+		server.WithHttpAddr(option.HttpAddr),
 	}
 
-	for _, o := range serves {
-		if err := o(app); err != nil {
-			return nil, err
-		}
-	}
-
+	opts = append(opts, opt...)
+	app.Server = server.NewServer(app.Logger, regFunc, opts...)
 	return app, nil
 }
 
 // Start
-func (a *Application) Start(opts ...options.ServerOptional) error {
-	if a.Server.HttpServer == nil && a.Server.GrpcServer == nil {
-		return errors.New("no server provider")
-	}
-
-	if a.Server.HttpServer != nil {
-		if err := a.Server.HttpServer.Start(opts...); err != nil {
-			return errors.Wrap(err, "http server start error")
-		}
-	}
-
-	if a.Server.GrpcServer != nil {
-		if err := a.Server.GrpcServer.Start(opts...); err != nil {
-			return errors.Wrap(err, "grpc server start error")
-		}
-	}
-
+func (a *Application) Start() error {
+	a.Server.Start()
 	return nil
 }
-
-// AwaitSignal
-func (a *Application) AwaitSignal() {
-	c := make(chan os.Signal, 1)
-	signal.Reset(syscall.SIGTERM, syscall.SIGINT)
-	signal.Notify(c, syscall.SIGTERM, syscall.SIGINT)
-	select {
-	case s := <-c:
-		a.logger.Info("receive a signal", zap.String("signal", s.String()))
-		if a.Server.HttpServer != nil {
-			if err := a.Server.HttpServer.Stop(); err != nil {
-				a.logger.Error("stop http server error", zap.Error(err))
-			}
-		}
-
-		if a.Server.GrpcServer != nil {
-			if err := a.Server.GrpcServer.Stop(); err != nil {
-				a.logger.Error("stop grpc server error", zap.Error(err))
-			}
-		}
-
-		os.Exit(0)
-	}
-}
-
-var AppProviderSet = wire.NewSet(NewOption, NewApp)

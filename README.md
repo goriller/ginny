@@ -1,6 +1,6 @@
 # [Ginny](https://github.com/gorillazer/ginny)
 
-Ginny framework base on gRPC + gRPC-Gateway, more components to improve development efficiency.
+Ginny base on gRPC + gRPC-Gateway, more components to improve development efficiency.
 
 ## Installation
 
@@ -101,16 +101,11 @@ if you use vscode , edit the `.vscode/launch.json` , like this:
             "mode": "auto",
             "program": "${workspaceFolder}/cmd",
             "env": {
-                "mysql_host": "127.0.0.1:3306",
-                "mysql_user": "root",
-                "mysql_pass": "",
-                "redis_host": "127.0.0.1:6379",
-                "redis_pass": "",
-                "jaeger_agent": "127.0.0.1:6831",
+            // ...
             },
             "args": [
-                "-f","../configs/dev.yml"
-                // "--remote", "etcd",
+                "-conf","../configs/dev.yml"
+                // "-remote", "etcd://127.0.0.1:1233/test",
             ]
         }
     ]
