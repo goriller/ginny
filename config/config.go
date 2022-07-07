@@ -30,6 +30,8 @@ func init() {
 
 // NewConfig
 func NewConfig() (*viper.Viper, error) {
+	flag.Parse()
+
 	var (
 		err error
 		v   = viper.New()
