@@ -1,0 +1,13 @@
+syntax = "proto3";
+package mux;
+
+option go_package = "git.woa.com/weida/runtime/server/mux;mux";
+
+import "google/protobuf/any.proto";
+
+// Error is the generic error returned from unary RPCs.
+message MuxError {
+  uint32 code = 1;
+  string message = 2;
+  repeated google.protobuf.Any details = 3;
+}
