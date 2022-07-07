@@ -8,8 +8,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/gorillazer/ginny-serve/logging"
 	"github.com/gorillazer/ginny-util/graceful"
+	"github.com/gorillazer/ginny/logging"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/timeout"

@@ -6,7 +6,6 @@ require (
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/google/uuid v1.1.2
 	github.com/google/wire v0.5.0
-	github.com/gorillazer/ginny-serve v0.1.1
 	github.com/gorillazer/ginny-util v0.0.6
 	github.com/gorillazer/ginny-util/graceful v0.0.0-20220701090559-95adaf70d7de
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2 v2.0.0-20210710102418-709d4153d7aa

@@ -229,8 +229,6 @@ github.com/googleapis/gax-go/v2 v2.2.0/go.mod h1:as02EH8zWkzwUoLbBaFeQ+arQaj/Oth
 github.com/googleapis/gax-go/v2 v2.3.0/go.mod h1:b8LNqSzNabLiUpXKkY7HAR5jr6bIT99EXz9pXxye9YM=
 github.com/googleapis/gax-go/v2 v2.4.0/go.mod h1:XOTVJ59hdnfJLIP/dh8n5CGryZR2LxK9wbMD5+iXC6c=
 github.com/googleapis/google-cloud-go-testing v0.0.0-20200911160855-bcd43fbb19e8/go.mod h1:dvDLG8qkwmyD9a/MJJN3XJcT3xFxOKAvTZGvuZmac9g=
-github.com/gorillazer/ginny-serve v0.1.1 h1:qI8iEAJFHVqqf5wd5gJkWMdXkNEwTwJE7xKG+8FcdUw=
-github.com/gorillazer/ginny-serve v0.1.1/go.mod h1:fm+aDkCwfYyQJ4C5E4z9xmj3adnQ1fV1RR9wfpl+LcY=
 github.com/gorillazer/ginny-util v0.0.6 h1:z1B5GMfYq/MKtOMVmZ8IUN97DQ0outBy8NKZA3hCqb4=
 github.com/gorillazer/ginny-util v0.0.6/go.mod h1:PwTiNR3YE0F5PJ5TBQzezErNJ1BMiWzJC3lBycxUSKA=
 github.com/gorillazer/ginny-util/graceful v0.0.0-20220701090559-95adaf70d7de h1:dGaRmo2psSuFNY6QHgthfR94cBDiPkU6E+UaL17XcPI=
