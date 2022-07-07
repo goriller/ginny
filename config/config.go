@@ -2,7 +2,9 @@ package config
 
 import (
 	"bytes"
+	"flag"
 	"io/ioutil"
+	"net/url"
 	"os"
 	"strings"
 
@@ -12,22 +14,29 @@ import (
 	"github.com/spf13/viper"
 )
 
-// ConfigProviderSet
-var ConfigProviderSet = wire.NewSet(NewConfig)
-
-const (
-	defaultConfigPath = "."
+var (
+	remoteConfig      string
+	defaultConfigPath string
+	// ConfigProviderSet
+	ConfigProviderSet = wire.NewSet(NewConfig)
 )
 
+func init() {
+	// 远程配置  etcd、consul
+	flag.StringVar(&remoteConfig, "remote", "", "remote config provider: etcd://127.0.0.1:6577/test or consul://127.0.0.1:6577/test ")
+	// 配置文件路径
+	flag.StringVar(&defaultConfigPath, "conf", "./configs/config.yaml", "uri to load config")
+}
+
 // NewConfig
-func NewConfig(path string) (*viper.Viper, error) {
+func NewConfig() (*viper.Viper, error) {
 	var (
 		err error
 		v   = viper.New()
 	)
 
-	v.AddConfigPath(defaultConfigPath)
-	v.SetConfigFile(path)
+	v.AddConfigPath(".")
+	v.SetConfigFile(defaultConfigPath)
 
 	v.AutomaticEnv()
 	v.SetEnvPrefix("ginny")
@@ -59,8 +68,8 @@ func loadConfig(v *viper.Viper) error {
 	logger.DefaultLogger.Info("Loading config...")
 	// load config from remote
 	p := os.Getenv("REMOTE_CONFIG")
-	if p != "" {
-		return loadConfigFromRemote(v)
+	if p != "" || remoteConfig != "" {
+		return loadConfigFromRemote(v, p)
 	}
 	data, err := ioutil.ReadFile(v.ConfigFileUsed())
 	if err != nil {
@@ -76,27 +85,20 @@ func loadConfig(v *viper.Viper) error {
 	return nil
 }
 
-// RemoteProvider
-type RemoteProvider struct {
-	provider string
-	endpoint string
-	path     string
-	types    string
-}
-
 // loadConfigFromRemote
-func loadConfigFromRemote(v *viper.Viper) error {
-	p := new(RemoteProvider)
-	if err := v.UnmarshalKey("config", p); err != nil {
+func loadConfigFromRemote(v *viper.Viper, uri string) error {
+	u, err := url.Parse(uri)
+	if err != nil {
 		return err
 	}
-	if p.types == "" {
-		p.types = "json"
+	t := u.Query().Get("type")
+	if t == "" {
+		t = "json"
 	}
-	if err := v.AddRemoteProvider(p.provider, p.endpoint, p.path); err != nil {
+	if err := v.AddRemoteProvider(u.Scheme, u.Host, u.Path); err != nil {
 		return err
 	}
-	v.SetConfigType(p.types)
+	v.SetConfigType(t)
 
 	if err := v.ReadRemoteConfig(); err != nil {
 		return err
