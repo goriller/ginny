@@ -80,10 +80,10 @@ func NewLogger(o *Options) (*zap.Logger, error) {
 		cores = append(cores, zapcore.NewCore(je, fw, level))
 	}
 
-	cw := zapcore.Lock(os.Stdout)
-	// stdout core 采用 ConsoleEncoder
+	// stdout core
 	if o.Stdout {
-		ce := zapcore.NewConsoleEncoder(encoderCfg)
+		cw := zapcore.Lock(os.Stdout)
+		ce := zapcore.NewJSONEncoder(encoderCfg)
 		cores = append(cores, zapcore.NewCore(ce, cw, level))
 	}
 

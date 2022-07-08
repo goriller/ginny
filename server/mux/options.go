@@ -5,28 +5,28 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gorillazer/ginny/middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
 	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
-// MuxMiddleware
-type MuxMiddleware func(http.Handler) http.Handler
-
 // MuxOption
 type MuxOption struct {
 	logger            logging.Logger
+	tracer            opentracing.Tracer
 	bodyMarshaler     runtime.Marshaler
 	bodyWriter        bodyReWriterFunc
 	errorMarshaler    runtime.Marshaler
 	errorHandler      runtime.ErrorHandlerFunc
 	runTimeOpts       []runtime.ServeMuxOption
 	withoutHTTPStatus bool
-	middleWares       []MuxMiddleware
+	middleWares       []middleware.MuxMiddleware
 }
 
 var (
@@ -52,7 +52,7 @@ var (
 		bodyMarshaler:     defaultMarshaler,
 		errorMarshaler:    defaultMarshaler,
 		withoutHTTPStatus: true,
-		middleWares:       []MuxMiddleware{},
+		middleWares:       []middleware.MuxMiddleware{},
 		runTimeOpts:       []runtime.ServeMuxOption{},
 	}
 )
@@ -112,8 +112,17 @@ func WithoutHTTPStatus() Optional {
 	}
 }
 
+// WithTracer
+func WithTracer(tracer opentracing.Tracer) Optional {
+	return func(o *MuxOption) {
+		if tracer != nil {
+			o.tracer = tracer
+		}
+	}
+}
+
 // WithMiddleWares pluggable function that performs middle wares.
-func WithMiddleWares(middleWares ...MuxMiddleware) Optional {
+func WithMiddleWares(middleWares ...middleware.MuxMiddleware) Optional {
 	return func(o *MuxOption) {
 		if len(middleWares) > 0 {
 			o.middleWares = append(o.middleWares, middleWares...)
@@ -143,7 +152,7 @@ func fullOptions(logger *zap.Logger,
 		runtime.WithErrorHandler(o.errorHandler),
 		runtime.WithMarshalerOption(runtime.MIMEWildcard, o.bodyMarshaler),
 		runtime.WithForwardResponseOption(forwardResponseOptionFunc),
-		runtime.WithMetadata(chainGrpcMetadata()),
+		runtime.WithMetadata(middleware.ChainMetadata()),
 	}
 	o.runTimeOpts = append(o.runTimeOpts, runtimeOpt...)
 

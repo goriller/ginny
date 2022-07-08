@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/gorillazer/ginny/interceptor"
 	"github.com/gorillazer/ginny/logging"
 	"github.com/gorillazer/ginny/server/mux"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
@@ -209,7 +210,7 @@ func fullOptions(logger *zap.Logger,
 			muxLoggingOpts...,
 		),
 		validator.UnaryServerInterceptor(false),
-		mux.TraceUnaryServerInterceptor(),
+		interceptor.TracerServerUnaryInterceptor(opt.tracer),
 	}
 
 	streamServerInterceptors := []grpc.StreamServerInterceptor{
@@ -221,19 +222,19 @@ func fullOptions(logger *zap.Logger,
 			muxLoggingOpts...,
 		),
 		validator.StreamServerInterceptor(false),
-		mux.TraceStreamServerInterceptor(),
+		interceptor.TracerServerStreamInterceptor(opt.tracer),
 	}
-	if opt.tracer != nil {
-		unaryServerInterceptors = append(unaryServerInterceptors,
-			tracing.UnaryServerInterceptor(tracing.WithTracer(opt.tracer)))
-		streamServerInterceptors = append(streamServerInterceptors,
-			tracing.StreamServerInterceptor(tracing.WithTracer(opt.tracer)))
-	} else {
-		unaryServerInterceptors = append(unaryServerInterceptors,
-			tracing.UnaryServerInterceptor(tracing.WithTracer(opentracing.GlobalTracer())))
-		streamServerInterceptors = append(streamServerInterceptors,
-			tracing.StreamServerInterceptor(tracing.WithTracer(opentracing.GlobalTracer())))
-	}
+	// if opt.tracer != nil {
+	// 	unaryServerInterceptors = append(unaryServerInterceptors,
+	// 		tracing.UnaryServerInterceptor(tracing.WithTracer(opt.tracer)))
+	// 	streamServerInterceptors = append(streamServerInterceptors,
+	// 		tracing.StreamServerInterceptor(tracing.WithTracer(opt.tracer)))
+	// } else {
+	// 	unaryServerInterceptors = append(unaryServerInterceptors,
+	// 		tracing.UnaryServerInterceptor(tracing.WithTracer(opentracing.GlobalTracer())))
+	// 	streamServerInterceptors = append(streamServerInterceptors,
+	// 		tracing.StreamServerInterceptor(tracing.WithTracer(opentracing.GlobalTracer())))
+	// }
 
 	if len(opt.unaryServerInterceptors) > 0 {
 		unaryServerInterceptors = append(unaryServerInterceptors, opt.unaryServerInterceptors...)

@@ -6,7 +6,17 @@ import (
 )
 
 var (
-	RequestId = "request_id"
+	RequestId          = "request_id"
+	RequestIDHeader    = "x-request-id"
+	CaptchaTokenHeader = "x-captcha-token"
+	PathHeader         = "x-request-path"
+	MethodHeader       = "x-request-method"
+	TraceidHeader      = "x-b3-traceid"
+	SpanidHeader       = "x-b3-spanid"
+	ParentspanidHeader = "x-b3-parentspanid"
+	SampledHeader      = "x-b3-sampled"
+	FlagsHeader        = "x-b3-flags"
+	SpanContextHeader  = "x-ot-span-context"
 
 	defaultOptions = &options{
 		shouldLog: DefaultLoggingDeciderMethod,

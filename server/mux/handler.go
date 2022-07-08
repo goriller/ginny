@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/gorillazer/ginny/middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
@@ -176,7 +177,7 @@ func WriteHTTPErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 }
 
 // handlerWithMiddleWares handler with middle wares.
-func handlerWithMiddleWares(h http.Handler, middleWares ...MuxMiddleware) http.Handler {
+func handlerWithMiddleWares(h http.Handler, middleWares ...middleware.MuxMiddleware) http.Handler {
 	lenMiddleWare := len(middleWares)
 	for i := lenMiddleWare - 1; i >= 0; i-- {
 		middleWare := middleWares[i]

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gorillazer/ginny/health"
+	"github.com/gorillazer/ginny/middleware"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
 )
@@ -25,8 +26,8 @@ func NewMuxServe(logger *zap.Logger, opts ...Optional) *MuxServe {
 	mux.serveMux = runtime.NewServeMux(o.runTimeOpts...)
 
 	// middleWares
-	var middlewares = []MuxMiddleware{
-		TraceMiddleWare,
+	var middlewares = []middleware.MuxMiddleware{
+		middleware.TracerMiddleWare(o.tracer),
 		health.HealthMiddleware,
 	}
 	if len(o.middleWares) > 0 {

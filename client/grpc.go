@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/gorillazer/ginny-util/graceful"
+	"github.com/gorillazer/ginny/interceptor"
 	"github.com/gorillazer/ginny/logging"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/timeout"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tracing"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	_ "github.com/mbobakov/grpc-consul-resolver" // It's important
 	"github.com/opentracing/opentracing-go"
@@ -144,8 +144,8 @@ func NewGrpcClient(ctx context.Context, uri string, pbNewXxxClient interface{},
 
 // newGrpcClientConn
 func newGrpcClientConn(ctx context.Context, opt *GrpcClientOptions) (*grpc.ClientConn, error) {
-	var unaryInterceptor []grpc.UnaryClientInterceptor
-	var streamInterceptor []grpc.StreamClientInterceptor
+	var unaryInterceptor = []grpc.UnaryClientInterceptor{}
+	var streamInterceptor = []grpc.StreamClientInterceptor{}
 	// logger
 	if opt.logger != nil {
 		logger := grpc_zap.InterceptorLogger(opt.logger)
@@ -199,20 +199,44 @@ func newGrpcClientConn(ctx context.Context, opt *GrpcClientOptions) (*grpc.Clien
 
 	if opt.tracer != nil {
 		opt.grpcDialOptions = append(opt.grpcDialOptions,
+			// grpc.WithChainUnaryInterceptor(
+			// 	tracing.UnaryClientInterceptor(
+			// 		tracing.WithTracer(opt.tracer),
+			// 		tracing.WithTraceHeaderName(logging.RequestIDHeader),
+			// 	),
+			// ),
+			// grpc.WithChainStreamInterceptor(
+			// 	tracing.StreamClientInterceptor(
+			// 		tracing.WithTracer(opt.tracer),
+			// 		tracing.WithTraceHeaderName(logging.RequestIDHeader),
+			// 	),
+			// ),
 			grpc.WithChainUnaryInterceptor(
-				tracing.UnaryClientInterceptor(tracing.WithTracer(opt.tracer)),
+				interceptor.TracerUnaryClientInterceptor(opt.tracer),
 			),
 			grpc.WithChainStreamInterceptor(
-				tracing.StreamClientInterceptor(tracing.WithTracer(opt.tracer)),
+				interceptor.TracerClientStreamInterceptor(opt.tracer),
 			),
 		)
 	} else {
 		opt.grpcDialOptions = append(opt.grpcDialOptions,
+			// grpc.WithChainUnaryInterceptor(
+			// 	tracing.UnaryClientInterceptor(
+			// 		tracing.WithTracer(opentracing.GlobalTracer()),
+			// 		tracing.WithTraceHeaderName(logging.RequestIDHeader),
+			// 	),
+			// ),
+			// grpc.WithChainStreamInterceptor(
+			// 	tracing.StreamClientInterceptor(
+			// 		tracing.WithTracer(opentracing.GlobalTracer()),
+			// 		tracing.WithTraceHeaderName(logging.RequestIDHeader),
+			// 	),
+			// ),
 			grpc.WithChainUnaryInterceptor(
-				tracing.UnaryClientInterceptor(tracing.WithTracer(opentracing.GlobalTracer())),
+				interceptor.TracerUnaryClientInterceptor(opentracing.GlobalTracer()),
 			),
 			grpc.WithChainStreamInterceptor(
-				tracing.StreamClientInterceptor(tracing.WithTracer(opentracing.GlobalTracer())),
+				interceptor.TracerClientStreamInterceptor(opentracing.GlobalTracer()),
 			),
 		)
 	}
