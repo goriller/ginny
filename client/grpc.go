@@ -23,6 +23,7 @@ import (
 	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/keepalive"
 )
 
 // GrpcClientOptions
@@ -179,6 +180,10 @@ func newGrpcClientConn(ctx context.Context, opt *GrpcClientOptions) (*grpc.Clien
 		grpc.WithDefaultServiceConfig(loadBalanceConfig),
 		grpc.WithChainUnaryInterceptor(unaryInterceptor...),
 		grpc.WithChainStreamInterceptor(streamInterceptor...),
+		grpc.WithKeepaliveParams(keepalive.ClientParameters{
+			Time:    time.Minute,
+			Timeout: time.Second * 30,
+		}),
 	)
 
 	if opt.tracer != nil {
