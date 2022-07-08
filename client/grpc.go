@@ -24,6 +24,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
+	"google.golang.org/grpc/metadata"
 )
 
 // GrpcClientOptions
@@ -97,6 +98,16 @@ func WithGrpcDialOptions(options ...grpc.DialOption) GrpcClientOptional {
 	return func(o *GrpcClientOptions) {
 		o.grpcDialOptions = append(o.grpcDialOptions, options...)
 	}
+}
+
+// BindMetadataForContext
+func BindMetadataForContext(ctx context.Context, data map[string]string) context.Context {
+	headersIn, _ := metadata.FromIncomingContext(ctx)
+	for k, v := range data {
+		headersIn.Set(k, v)
+	}
+	cc := metadata.NewOutgoingContext(ctx, headersIn)
+	return cc
 }
 
 // NewGrpcClient 参数 bNewXxxClient 对应 pb.NewXxxClient 方法
@@ -198,10 +209,10 @@ func newGrpcClientConn(ctx context.Context, opt *GrpcClientOptions) (*grpc.Clien
 	} else {
 		opt.grpcDialOptions = append(opt.grpcDialOptions,
 			grpc.WithChainUnaryInterceptor(
-				tracing.UnaryClientInterceptor(),
+				tracing.UnaryClientInterceptor(tracing.WithTracer(opentracing.GlobalTracer())),
 			),
 			grpc.WithChainStreamInterceptor(
-				tracing.StreamClientInterceptor(),
+				tracing.StreamClientInterceptor(tracing.WithTracer(opentracing.GlobalTracer())),
 			),
 		)
 	}

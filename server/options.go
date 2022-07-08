@@ -209,6 +209,7 @@ func fullOptions(logger *zap.Logger,
 			muxLoggingOpts...,
 		),
 		validator.UnaryServerInterceptor(false),
+		mux.TraceUnaryServerInterceptor(),
 	}
 
 	streamServerInterceptors := []grpc.StreamServerInterceptor{
@@ -220,6 +221,7 @@ func fullOptions(logger *zap.Logger,
 			muxLoggingOpts...,
 		),
 		validator.StreamServerInterceptor(false),
+		mux.TraceStreamServerInterceptor(),
 	}
 	if opt.tracer != nil {
 		unaryServerInterceptors = append(unaryServerInterceptors,
@@ -228,9 +230,9 @@ func fullOptions(logger *zap.Logger,
 			tracing.StreamServerInterceptor(tracing.WithTracer(opt.tracer)))
 	} else {
 		unaryServerInterceptors = append(unaryServerInterceptors,
-			tracing.UnaryServerInterceptor())
+			tracing.UnaryServerInterceptor(tracing.WithTracer(opentracing.GlobalTracer())))
 		streamServerInterceptors = append(streamServerInterceptors,
-			tracing.StreamServerInterceptor())
+			tracing.StreamServerInterceptor(tracing.WithTracer(opentracing.GlobalTracer())))
 	}
 
 	if len(opt.unaryServerInterceptors) > 0 {
@@ -253,7 +255,8 @@ func fullOptions(logger *zap.Logger,
 
 	opt.grpcServerOpts = append(opt.grpcServerOpts,
 		grpc.ChainStreamInterceptor(streamServerInterceptors...),
-		grpc.ChainUnaryInterceptor(unaryServerInterceptors...))
+		grpc.ChainUnaryInterceptor(unaryServerInterceptors...),
+	)
 
 	if !opt.withOutKeepAliveOpts {
 		opt.grpcServerOpts = append(opt.grpcServerOpts, grpc.KeepaliveParams(keepalive.ServerParameters{

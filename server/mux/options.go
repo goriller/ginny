@@ -143,6 +143,7 @@ func fullOptions(logger *zap.Logger,
 		runtime.WithErrorHandler(o.errorHandler),
 		runtime.WithMarshalerOption(runtime.MIMEWildcard, o.bodyMarshaler),
 		runtime.WithForwardResponseOption(forwardResponseOptionFunc),
+		runtime.WithMetadata(chainGrpcMetadata()),
 	}
 	o.runTimeOpts = append(o.runTimeOpts, runtimeOpt...)
 

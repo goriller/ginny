@@ -5,10 +5,14 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-var defaultOptions = &options{
-	shouldLog: DefaultLoggingDeciderMethod,
-	levelFunc: DefaultCodeToLevel,
-}
+var (
+	RequestId = "request_id"
+
+	defaultOptions = &options{
+		shouldLog: DefaultLoggingDeciderMethod,
+		levelFunc: DefaultCodeToLevel,
+	}
+)
 
 // PayloadDecision defines rules for enabling Request or Response logging
 type PayloadDecision struct {

@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorillazer/ginny/logging"
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
@@ -255,9 +256,9 @@ func (c *Client) onRequestClose(ctx context.Context,
 	if c.options.logger != nil {
 		used := time.Since(start)
 		log := c.options.logger.With(
-			zap.String("action", method+":"+path),
+			zap.String("action", path),
 			zap.String("host", c.options.target),
-			zap.String("request_id", header.Get(RequestIDHeader)),
+			zap.String(logging.RequestId, header.Get(RequestIDHeader)),
 			zap.Int("status", statusCode),
 			zap.Int("referer", tryTimes),
 			zap.String("protocol", "http/client"),

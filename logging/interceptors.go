@@ -55,6 +55,12 @@ func commonFields(ctx context.Context, kind, service, method string, typ interce
 		"action", "/" + service + "/" + method,
 		"protocol", "grpc/" + kind + "/" + string(typ),
 	}
+	//
+	preTags := tags.Extract(ctx)
+	for k, v := range preTags.Values() {
+		fields = append(fields, []string{k, v}...)
+	}
+
 	return fields
 }
 
