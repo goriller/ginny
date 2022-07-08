@@ -42,8 +42,12 @@ type options struct {
 }
 
 var defaultOptions = &options{
-	grpcAddr: ":9000",
-	httpAddr: ":8080",
+	grpcAddr:                 ":9000",
+	httpAddr:                 ":8080",
+	muxOptions:               []mux.Optional{},
+	grpcServerOpts:           []grpc.ServerOption{},
+	streamServerInterceptors: []grpc.StreamServerInterceptor{},
+	unaryServerInterceptors:  []grpc.UnaryServerInterceptor{},
 }
 
 // Option the option for this module
@@ -183,8 +187,10 @@ func fullOptions(logger *zap.Logger,
 		opt.logger = grpc_zap.InterceptorLogger(logger)
 	}
 
-	muxLoggingOpts := []logging.Option{
-		logging.WithDecider(opt.loggingDecider),
+	muxLoggingOpts := []logging.Option{}
+	if opt.loggingDecider != nil {
+		muxLoggingOpts = append(muxLoggingOpts,
+			logging.WithDecider(opt.loggingDecider))
 	}
 	if opt.requestFieldExtractorFunc != nil {
 		muxLoggingOpts = append(muxLoggingOpts,

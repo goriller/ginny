@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	DefaultLogger *zap.Logger
+	defaultLogger *zap.Logger
 	// LoggerProviderSet
 	LoggerProviderSet = wire.NewSet(NewOptions, NewLogger)
 )
@@ -88,9 +88,25 @@ func NewLogger(o *Options) (*zap.Logger, error) {
 	}
 
 	core := zapcore.NewTee(cores...)
-	DefaultLogger = zap.New(core)
+	log := zap.New(core)
 
-	zap.ReplaceGlobals(DefaultLogger)
+	zap.ReplaceGlobals(log)
 
-	return DefaultLogger, err
+	return log, err
+}
+
+// GetLogger
+func GetLogger() *zap.Logger {
+	if defaultLogger != nil {
+		return defaultLogger
+	}
+	cfg := zap.NewProductionConfig()
+	encoderCfg := zap.NewProductionEncoderConfig()
+	encoderCfg.TimeKey = "time"
+	encoderCfg.CallerKey = ""
+	encoderCfg.EncodeTime = zapcore.RFC3339NanoTimeEncoder
+	cfg.EncoderConfig = encoderCfg
+
+	defaultLogger, _ = cfg.Build()
+	return defaultLogger
 }

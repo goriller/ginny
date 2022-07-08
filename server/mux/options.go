@@ -14,6 +14,10 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+// MuxMiddleware
+type MuxMiddleware func(http.Handler) http.Handler
+
+// MuxOption
 type MuxOption struct {
 	logger            logging.Logger
 	bodyMarshaler     runtime.Marshaler
@@ -22,7 +26,7 @@ type MuxOption struct {
 	errorHandler      runtime.ErrorHandlerFunc
 	runTimeOpts       []runtime.ServeMuxOption
 	withoutHTTPStatus bool
-	middleWares       []func(http.Handler) http.Handler
+	middleWares       []MuxMiddleware
 }
 
 var (
@@ -44,10 +48,12 @@ var (
 		},
 	}
 
-	defaultOptions = &MuxOption{
+	defaultMuxOption = &MuxOption{
 		bodyMarshaler:     defaultMarshaler,
 		errorMarshaler:    defaultMarshaler,
 		withoutHTTPStatus: true,
+		middleWares:       []MuxMiddleware{},
+		runTimeOpts:       []runtime.ServeMuxOption{},
 	}
 )
 
@@ -107,7 +113,7 @@ func WithoutHTTPStatus() Optional {
 }
 
 // WithMiddleWares pluggable function that performs middle wares.
-func WithMiddleWares(middleWares ...func(http.Handler) http.Handler) Optional {
+func WithMiddleWares(middleWares ...MuxMiddleware) Optional {
 	return func(o *MuxOption) {
 		if len(middleWares) > 0 {
 			o.middleWares = append(o.middleWares, middleWares...)
@@ -140,13 +146,13 @@ func fullOptions(logger *zap.Logger,
 	}
 	o.runTimeOpts = append(o.runTimeOpts, runtimeOpt...)
 
-	defaultOptions = o
+	defaultMuxOption = o
 	return o
 }
 
 func evaluateOptions(opts []Optional) *MuxOption {
 	optCopy := &MuxOption{}
-	*optCopy = *defaultOptions
+	*optCopy = *defaultMuxOption
 	for _, o := range opts {
 		o(optCopy)
 	}

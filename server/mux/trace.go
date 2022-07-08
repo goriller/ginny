@@ -41,6 +41,8 @@ func TraceMiddleWare(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		if r.URL.Path == "/healthz" {
+			// next
+			h.ServeHTTP(w, r)
 			return
 		}
 		r.Header.Set("x-request-path", r.URL.Path)
@@ -58,13 +60,12 @@ func TraceMiddleWare(h http.Handler) http.Handler {
 		}
 		r.Header.Set(RequestIDHeader, requestID)
 		w.Header().Set(RequestIDHeader, requestID)
-		tags.Extract(ctx).Set("requestId", requestID)
 
 		defer func() {
 			if recoverPanic {
 				if rec := recover(); rec != nil {
 					stack := zap.StackSkip("", 2).String
-					defaultOptions.logger.Log(logging.ERROR, stack)
+					defaultMuxOption.logger.Log(logging.ERROR, stack)
 					tags.Extract(ctx).Set("stacktrace", stack)
 					err := status.Errorf(codes.Internal, "%s", rec)
 					WriteHTTPErrorResponse(w, r, err)
@@ -80,10 +81,10 @@ func TraceMiddleWare(h http.Handler) http.Handler {
 		writer := &responseWriter{
 			w:                 w,
 			header:            200,
-			withoutHTTPStatus: defaultOptions.withoutHTTPStatus,
+			withoutHTTPStatus: defaultMuxOption.withoutHTTPStatus,
 		}
 
-		if defaultOptions.logger == nil {
+		if defaultMuxOption.logger == nil {
 			h.ServeHTTP(writer, r)
 			return
 		}
@@ -123,5 +124,5 @@ func withLogger(start time.Time, r *http.Request, w http.ResponseWriter) {
 			logLevel = logging.INFO
 		}
 	}
-	defaultOptions.logger.With(ExtractFields(logData)...).Log(logLevel, r.Method)
+	defaultMuxOption.logger.With(ExtractFields(logData)...).Log(logLevel, r.Method)
 }

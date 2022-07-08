@@ -164,7 +164,7 @@ func WriteHTTPErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	preTags.Set("message", s.Message())
 	w.WriteHeader(CodeToStatus(s.Code()))
 
-	_, e := defaultOptions.bodyWriter(w, r, s)
+	_, e := defaultMuxOption.bodyWriter(w, r, s)
 	// newErrorBytes(requestId, apiModel, s, optsWare.errorMarshaler, optsWare.newErrorBody)
 	if e != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -176,7 +176,7 @@ func WriteHTTPErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 }
 
 // handlerWithMiddleWares handler with middle wares.
-func handlerWithMiddleWares(h http.Handler, middleWares ...func(http.Handler) http.Handler) http.Handler {
+func handlerWithMiddleWares(h http.Handler, middleWares ...MuxMiddleware) http.Handler {
 	lenMiddleWare := len(middleWares)
 	for i := lenMiddleWare - 1; i >= 0; i-- {
 		middleWare := middleWares[i]

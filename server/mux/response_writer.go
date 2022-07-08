@@ -45,7 +45,7 @@ func defaultBodyWriter(w http.ResponseWriter, r *http.Request, s *status.Status)
 		Message: msg,
 	}
 
-	buf, err := defaultOptions.errorMarshaler.Marshal(statusError)
+	buf, err := defaultMuxOption.errorMarshaler.Marshal(statusError)
 	if err != nil {
 		return 0, err
 	}

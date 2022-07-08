@@ -1,6 +1,9 @@
 package ginny
 
 import (
+	"context"
+	"time"
+
 	"github.com/google/wire"
 	"github.com/gorillazer/ginny/config"
 	"github.com/gorillazer/ginny/logger"
@@ -16,12 +19,17 @@ var AppProviderSet = wire.NewSet(
 	config.ConfigProviderSet,
 	NewOption, NewApp)
 
+// RegistrarFunc
+type RegistrarFunc func(app *Application) error
+
 // Application
 type Application struct {
 	Name    string
 	Version string
 	Option  *Option
 	Logger  *zap.Logger
+	Ctx     context.Context
+	regFunc RegistrarFunc
 	Server  *server.Server
 }
 
@@ -47,26 +55,39 @@ func NewOption(v *viper.Viper) (*Option, error) {
 // NewApp
 func NewApp(option *Option,
 	logger *zap.Logger,
-	regFunc server.RegistrarFunc, opts ...server.Option,
+	regFunc RegistrarFunc, opts ...server.Option,
 ) (*Application, error) {
+	ctx, cc := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cc()
+
 	app := &Application{
 		Name:    option.Name,
 		Version: option.Version,
 		Option:  option,
-		Logger:  logger.With(zap.String("type", "Application")),
+		Logger:  logger.With(zap.String("type", "App")),
+		Ctx:     ctx,
+		regFunc: regFunc,
 	}
 	opt := []server.Option{
 		server.WithGrpcAddr(option.GrpcAddr),
-		server.WithHttpAddr(option.HttpAddr),
+	}
+	if option.HttpAddr != "" {
+		opts = append(opts,
+			server.WithHttp(true),
+			server.WithHttpAddr(option.HttpAddr),
+		)
 	}
 
 	opts = append(opts, opt...)
-	app.Server = server.NewServer(app.Logger, regFunc, opts...)
+	app.Server = server.NewServer(app.Logger, opts...)
 	return app, nil
 }
 
 // Start
 func (a *Application) Start() error {
+	if err := a.regFunc(a); err != nil {
+		return err
+	}
 	a.Server.Start()
 	return nil
 }

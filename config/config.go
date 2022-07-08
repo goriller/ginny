@@ -30,12 +30,12 @@ func init() {
 
 // NewConfig
 func NewConfig() (*viper.Viper, error) {
-	flag.Parse()
-
 	var (
 		err error
 		v   = viper.New()
 	)
+
+	flag.Parse()
 
 	v.AddConfigPath(".")
 	v.SetConfigFile(defaultConfigPath)
@@ -46,10 +46,10 @@ func NewConfig() (*viper.Viper, error) {
 	// 监听配置文件变更
 	v.WatchConfig()
 	v.OnConfigChange(func(in fsnotify.Event) {
-		logger.DefaultLogger.Info("Config file updated.")
+		logger.GetLogger().Info("Config file updated.")
 		err := loadConfig(v)
 		if err != nil {
-			logger.DefaultLogger.Error("Config file reload error." + err.Error())
+			logger.GetLogger().Error("Config file reload error." + err.Error())
 		}
 	})
 
@@ -67,7 +67,7 @@ func NewConfig() (*viper.Viper, error) {
 
 // loadConfig
 func loadConfig(v *viper.Viper) error {
-	logger.DefaultLogger.Info("Loading config...")
+	logger.GetLogger().Info("Loading config...")
 	// load config from remote
 	p := os.Getenv("REMOTE_CONFIG")
 	if p != "" || remoteConfig != "" {
@@ -77,7 +77,7 @@ func loadConfig(v *viper.Viper) error {
 	if err != nil {
 		return err
 	}
-	logger.DefaultLogger.Info("Getting environment variables...")
+	logger.GetLogger().Info("Getting environment variables...")
 	conf := expandEnv(string(data))
 	err = v.ReadConfig(bytes.NewReader([]byte(conf)))
 	if err != nil {

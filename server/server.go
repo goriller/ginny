@@ -36,17 +36,10 @@ type Server struct {
 	healthServer *health.HealthServer
 }
 
-// RegistrarFunc
-type RegistrarFunc func(s *grpc.Server)
-
 // NewServer new grpc server with all common middleware.
-func NewServer(logger *zap.Logger, regFunc RegistrarFunc, opts ...Option) *Server {
-	var gs *grpc.Server
+func NewServer(logger *zap.Logger, opts ...Option) *Server {
 	opt := fullOptions(logger, opts...)
-	{
-		gs = grpc.NewServer(opt.grpcServerOpts...)
-		regFunc(gs)
-	}
+
 	svc := &Server{
 		logger:  opt.logger,
 		options: opt,
@@ -86,8 +79,7 @@ func (s *Server) startGRPC() error {
 	s.healthServer.Start(s.grpcServer)
 
 	s.logger.Log(logging.INFO, "Start grpc at "+s.options.grpcAddr)
-	err = s.grpcServer.Serve(lis)
-	if err != nil {
+	if err := s.grpcServer.Serve(lis); err != nil {
 		return errors.New("Start grpc failed for " + err.Error())
 	}
 	return nil
@@ -99,8 +91,7 @@ func (s *Server) startHTTP() error {
 		return nil
 	}
 	s.logger.Log(logging.INFO, "Start http at "+s.options.httpAddr)
-	err := s.httpServer.ListenAndServe()
-	if err != nil {
+	if err := s.httpServer.ListenAndServe(); err != nil {
 		if errors.Is(err, http.ErrServerClosed) {
 			return nil
 		}
