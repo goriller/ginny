@@ -15,6 +15,7 @@ import (
 
 // AppProviderSet
 var AppProviderSet = wire.NewSet(
+	log.Default,
 	config.ConfigProviderSet,
 	NewOption, NewApp)
 
@@ -53,6 +54,7 @@ func NewOption(v *viper.Viper) (*Option, error) {
 
 // NewApp
 func NewApp(option *Option,
+	logger *zap.Logger,
 	regFunc RegistrarFunc, opts ...server.Option,
 ) (*Application, error) {
 	ctx, cc := context.WithTimeout(context.Background(), 10*time.Second)
@@ -62,7 +64,7 @@ func NewApp(option *Option,
 		Name:    option.Name,
 		Version: option.Version,
 		Option:  option,
-		Logger:  log.With(zap.String("type", "App")),
+		Logger:  logger.With(zap.String("type", "App")),
 		Ctx:     ctx,
 		regFunc: regFunc,
 	}
