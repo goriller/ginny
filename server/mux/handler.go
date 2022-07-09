@@ -163,7 +163,6 @@ func WriteHTTPErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	preTags := tags.Extract(r.Context())
 	preTags.Set("code", strconv.Itoa(int(s.Code())))
 	preTags.Set("message", s.Message())
-	w.WriteHeader(CodeToStatus(s.Code()))
 
 	_, e := defaultMuxOption.bodyWriter(w, r, s)
 	// newErrorBytes(requestId, apiModel, s, optsWare.errorMarshaler, optsWare.newErrorBody)
@@ -173,6 +172,8 @@ func WriteHTTPErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 			grpclog.Infof("Failed to write response: %v", err)
 		}
 		return
+	} else {
+		w.WriteHeader(CodeToStatus(s.Code()))
 	}
 }
 

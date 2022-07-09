@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/gorillazer/ginny/logger"
 	"github.com/gorillazer/ginny/logging"
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
@@ -164,7 +163,7 @@ func TracerServerUnaryInterceptor(tracer opentracing.Tracer) grpc.UnaryServerInt
 		)
 
 		if err != nil && err != opentracing.ErrSpanContextNotFound {
-			logger.GetLogger().Sugar().Errorf("extract from metadata err: %v", err)
+			return nil, err
 		} else {
 			span := tracer.StartSpan(
 				info.FullMethod,
@@ -174,8 +173,7 @@ func TracerServerUnaryInterceptor(tracer opentracing.Tracer) grpc.UnaryServerInt
 			)
 			defer span.Finish()
 
-			ctx = opentracing.ContextWithSpan(ctx, span)
-			ctx = ChainContext(ctx)
+			ctx = ChainContext(opentracing.ContextWithSpan(ctx, span))
 		}
 
 		return handler(ctx, req)
@@ -232,7 +230,7 @@ func ChainContext(ctx context.Context) context.Context {
 	preTags := tags.Extract(ctx)
 	headersIn, _ := metadata.FromIncomingContext(ctx)
 	if headersIn == nil {
-		headersIn = metadata.New(map[string]string{})
+		headersIn = metadata.New(nil)
 	}
 
 	var reqId string

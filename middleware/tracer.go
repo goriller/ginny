@@ -39,58 +39,23 @@ func TracerMiddleWare(t opentracing.Tracer) MuxMiddleware {
 
 			ctx := interceptor.ChainContext(tags.SetInContext(r.Context(),
 				tags.NewTags()))
-			r = r.WithContext(ctx)
 
 			parentSpanContext, err := t.Extract(
 				opentracing.HTTPHeaders,
 				opentracing.HTTPHeadersCarrier(r.Header))
 			if err == nil || err == opentracing.ErrSpanContextNotFound {
-				serverSpan := opentracing.GlobalTracer().StartSpan(
+				serverSpan := t.StartSpan(
 					"ServeHTTP",
 					// this is magical, it attaches the new span to the parent parentSpanContext, and creates an unparented one if empty.
 					ext.RPCServerOption(parentSpanContext),
 					grpcGatewayTag,
 				)
-				r = r.WithContext(opentracing.ContextWithSpan(r.Context(), serverSpan))
+				ctx = opentracing.ContextWithSpan(ctx, serverSpan)
 				defer serverSpan.Finish()
 			}
+
+			r = r.WithContext(ctx)
 			h.ServeHTTP(w, r)
 		})
-	}
-}
-
-// chainAnnotators
-func chainAnnotators(ctx context.Context, req *http.Request) metadata.MD {
-	var (
-		pairs     []string
-		otHeaders = []string{
-			logging.RequestIDHeader,
-			logging.TraceidHeader,
-			logging.SpanidHeader,
-			logging.ParentspanidHeader,
-			logging.SampledHeader,
-			logging.FlagsHeader,
-			logging.SpanContextHeader}
-	)
-
-	for _, h := range otHeaders {
-		if v := req.Header.Get(h); v != "" {
-			pairs = append(pairs, h, v)
-		}
-	}
-	return metadata.Pairs(pairs...)
-}
-
-// ChainMetadata
-func ChainMetadata() annotator {
-	var (
-		mds []metadata.MD
-	)
-	return func(c context.Context, r *http.Request) metadata.MD {
-		annotators := []annotator{chainAnnotators}
-		for _, a := range annotators {
-			mds = append(mds, a(c, r))
-		}
-		return metadata.Join(mds...)
 	}
 }
