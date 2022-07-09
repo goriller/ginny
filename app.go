@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/wire"
 	"github.com/gorillazer/ginny/config"
-	"github.com/gorillazer/ginny/log"
+	"github.com/gorillazer/ginny/logger"
 	"github.com/gorillazer/ginny/server"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
@@ -15,7 +15,6 @@ import (
 
 // AppProviderSet
 var AppProviderSet = wire.NewSet(
-	log.Default,
 	config.ConfigProviderSet,
 	NewOption, NewApp)
 
@@ -27,7 +26,7 @@ type Application struct {
 	Name    string
 	Version string
 	Option  *Option
-	Logger  *zap.Logger
+	Logger  logger.StdLogger
 	Ctx     context.Context
 	regFunc RegistrarFunc
 	Server  *server.Server
@@ -54,7 +53,6 @@ func NewOption(v *viper.Viper) (*Option, error) {
 
 // NewApp
 func NewApp(option *Option,
-	logger *zap.Logger,
 	regFunc RegistrarFunc, opts ...server.Option,
 ) (*Application, error) {
 	ctx, cc := context.WithTimeout(context.Background(), 10*time.Second)
@@ -64,9 +62,9 @@ func NewApp(option *Option,
 		Name:    option.Name,
 		Version: option.Version,
 		Option:  option,
-		Logger:  logger.With(zap.String("type", "App")),
 		Ctx:     ctx,
 		regFunc: regFunc,
+		Logger:  logger.Action("App"),
 	}
 	opt := []server.Option{
 		server.WithGrpcAddr(option.GrpcAddr),
@@ -79,7 +77,8 @@ func NewApp(option *Option,
 	}
 
 	opts = append(opts, opt...)
-	app.Server = server.NewServer(app.Logger, opts...)
+	app.Server = server.NewServer(
+		logger.Default().With(zap.String("action", "App")), opts...)
 	return app, nil
 }
 

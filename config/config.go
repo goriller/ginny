@@ -10,7 +10,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/google/wire"
-	"github.com/gorillazer/ginny/log"
+	"github.com/gorillazer/ginny/logger"
 	"github.com/spf13/viper"
 )
 
@@ -46,10 +46,10 @@ func NewConfig() (*viper.Viper, error) {
 	// 监听配置文件变更
 	v.WatchConfig()
 	v.OnConfigChange(func(in fsnotify.Event) {
-		log.Default().Info("Config file updated.")
+		logger.Default().Info("Config file updated.")
 		err := loadConfig(v)
 		if err != nil {
-			log.Default().Error("Config file reload error." + err.Error())
+			logger.Default().Error("Config file reload error." + err.Error())
 		}
 	})
 
@@ -67,7 +67,7 @@ func NewConfig() (*viper.Viper, error) {
 
 // loadConfig
 func loadConfig(v *viper.Viper) error {
-	log.Default().Info("Loading config...")
+	logger.Default().Info("Loading config...")
 	// load config from remote
 	p := os.Getenv("REMOTE_CONFIG")
 	if p != "" || remoteConfig != "" {
@@ -77,7 +77,7 @@ func loadConfig(v *viper.Viper) error {
 	if err != nil {
 		return err
 	}
-	log.Default().Info("Getting environment variables...")
+	logger.Default().Info("Getting environment variables...")
 	conf := expandEnv(string(data))
 	err = v.ReadConfig(bytes.NewReader([]byte(conf)))
 	if err != nil {
