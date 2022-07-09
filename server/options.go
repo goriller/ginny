@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/gorillazer/ginny/interceptor"
-	"github.com/gorillazer/ginny/logging"
-	"github.com/gorillazer/ginny/server/mux"
+	"github.com/goriller/ginny/interceptor"
+	"github.com/goriller/ginny/logging"
+	"github.com/goriller/ginny/server/mux"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
 	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"

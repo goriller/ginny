@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gorillazer/ginny/logging"
+	"github.com/goriller/ginny/logging"
 	consulApi "github.com/hashicorp/consul/api"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"

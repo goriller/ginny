@@ -1,11 +1,11 @@
-# [Ginny](https://github.com/gorillazer/ginny)
+# [Ginny](https://github.com/goriller/ginny)
 
 Ginny base on gRPC + gRPC-Gateway, more components to improve development efficiency.
 
 ## Installation
 
 ```shell
-cd $GOPATH && go get github.com/gorillazer/ginny-cli/ginny
+cd $GOPATH && go get github.com/goriller/ginny-cli/ginny
 ```
 
 ### Dependencies tools
@@ -102,4 +102,4 @@ Select `Launch GoPackage` to debug run. Try to call `http://localhost:8080/` or 
 
 Check out the [quick start example][quick-example].
 
-[quick-example]: https://github.com/gorillazer/ginny-demo
+[quick-example]: https://github.com/goriller/ginny-demo

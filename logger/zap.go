@@ -4,7 +4,7 @@ import (
 	"context"
 	"os"
 
-	"github.com/gorillazer/ginny-util/graceful"
+	"github.com/goriller/ginny-util/graceful"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"

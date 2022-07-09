@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	util "github.com/gorillazer/ginny-util"
-	"github.com/gorillazer/ginny/interceptor"
-	"github.com/gorillazer/ginny/logging"
+	"github.com/goriller/ginny-util/ip"
+	"github.com/goriller/ginny/interceptor"
+	"github.com/goriller/ginny/logging"
 	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
 	"github.com/opentracing/opentracing-go"
@@ -33,7 +33,7 @@ func TracerMiddleWare(t opentracing.Tracer, logger grpc_logging.Logger) MuxMiddl
 			r.Header.Set(logging.MethodHeader, r.Method)
 			r.Header.Set("host", r.Host)
 			// 注入IP地址
-			_ = util.GetIPFromHTTPRequest(r)
+			_ = ip.GetIPFromHTTPRequest(r)
 			if t == nil {
 				t = opentracing.GlobalTracer()
 			}

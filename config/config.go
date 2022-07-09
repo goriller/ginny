@@ -10,7 +10,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/google/wire"
-	"github.com/gorillazer/ginny/logger"
+	"github.com/goriller/ginny/logger"
 	"github.com/spf13/viper"
 )
 

@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/google/wire"
-	"github.com/gorillazer/ginny/config"
-	"github.com/gorillazer/ginny/logger"
-	"github.com/gorillazer/ginny/server"
+	"github.com/goriller/ginny/config"
+	"github.com/goriller/ginny/logger"
+	"github.com/goriller/ginny/server"
 	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.uber.org/zap"

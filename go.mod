@@ -1,4 +1,4 @@
-module github.com/gorillazer/ginny
+module github.com/goriller/ginny
 
 go 1.16
 
@@ -6,8 +6,8 @@ require (
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/google/uuid v1.1.2
 	github.com/google/wire v0.5.0
-	github.com/gorillazer/ginny-util v0.0.6
-	github.com/gorillazer/ginny-util/graceful v0.0.0-20220701090559-95adaf70d7de
+	github.com/goriller/ginny-util/graceful v0.0.0-20220709134416-d6e877023877
+	github.com/goriller/ginny-util/ip v0.0.0-20220709134815-ff6d5a5ef0dd
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2 v2.0.0-20210710102418-709d4153d7aa
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.0-rc.2.0.20210807094637-274df5968e19
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.1-0.20200507082539-9abf3eb82b4a
