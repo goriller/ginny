@@ -1,8 +1,10 @@
 package mux
 
 import (
+	"fmt"
 	"net/http"
 
+	"github.com/gorillazer/ginny/logging"
 	"google.golang.org/grpc/status"
 )
 
@@ -29,6 +31,7 @@ func (l *responseWriter) Write(b []byte) (int, error) {
 // WriteHeader WriteHeader
 func (l *responseWriter) WriteHeader(s int) {
 	l.header = s
+	l.w.Header().Set(logging.ResponseStatusHeader, fmt.Sprintf("%v", s))
 	if !l.withoutHTTPStatus {
 		l.w.WriteHeader(s)
 	}

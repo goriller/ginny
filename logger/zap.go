@@ -17,7 +17,16 @@ var (
 func init() {
 	// you can use `export LOG_PATH=logs/log.log` to set log output to a file
 	logFilePath := os.Getenv("LOG_PATH")
-	level := zap.NewAtomicLevelAt(zap.DebugLevel)
+	level := zap.NewAtomicLevel()
+	logLevel := os.Getenv("LOG_LEVEL")
+	if logLevel != "" {
+		err := level.UnmarshalText([]byte(logLevel))
+		if err != nil {
+			level = zap.NewAtomicLevelAt(zap.DebugLevel)
+		}
+	} else {
+		level = zap.NewAtomicLevelAt(zap.DebugLevel)
+	}
 
 	cores := make([]zapcore.Core, 0, 1)
 	encoderCfg := zap.NewProductionEncoderConfig()

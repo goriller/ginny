@@ -172,9 +172,9 @@ func WriteHTTPErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 			grpclog.Infof("Failed to write response: %v", err)
 		}
 		return
-	} else {
-		w.WriteHeader(CodeToStatus(s.Code()))
 	}
+	w.WriteHeader(CodeToStatus(s.Code()))
+
 }
 
 // handlerWithMiddleWares handler with middle wares.

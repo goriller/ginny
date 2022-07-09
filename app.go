@@ -15,6 +15,7 @@ import (
 
 // AppProviderSet
 var AppProviderSet = wire.NewSet(
+	logger.Default,
 	config.ConfigProviderSet,
 	NewOption, NewApp)
 
@@ -26,7 +27,7 @@ type Application struct {
 	Name    string
 	Version string
 	Option  *Option
-	Logger  logger.StdLogger
+	Logger  *zap.Logger
 	Ctx     context.Context
 	regFunc RegistrarFunc
 	Server  *server.Server
@@ -52,8 +53,11 @@ func NewOption(v *viper.Viper) (*Option, error) {
 }
 
 // NewApp
-func NewApp(option *Option,
-	regFunc RegistrarFunc, opts ...server.Option,
+func NewApp(
+	option *Option,
+	logger *zap.Logger,
+	regFunc RegistrarFunc,
+	opts ...server.Option,
 ) (*Application, error) {
 	ctx, cc := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cc()
@@ -64,7 +68,7 @@ func NewApp(option *Option,
 		Option:  option,
 		Ctx:     ctx,
 		regFunc: regFunc,
-		Logger:  logger.Action("App"),
+		Logger:  logger.With(zap.String("action", "App")),
 	}
 	opt := []server.Option{
 		server.WithGrpcAddr(option.GrpcAddr),
@@ -77,8 +81,7 @@ func NewApp(option *Option,
 	}
 
 	opts = append(opts, opt...)
-	app.Server = server.NewServer(
-		logger.Default().With(zap.String("action", "App")), opts...)
+	app.Server = server.NewServer(logger, opts...)
 	return app, nil
 }
 
