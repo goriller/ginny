@@ -55,33 +55,18 @@ windows: [How to run "make" command in gitbash in windows?](https://gist.github.
 ### 1.Create Project
 
 ```shell
-ginny new hellodemo --grpc
+ginny new hellodemo
 ```
 
-### 2.Create a handler
-```shell
-ginny handle user 
-```
-
-### 3.Create a Service
+### 2.modify .proto and generate pb code
 
 ```shell
-ginny service user 
+make protoc
 ```
 
-### 3.Create a repository（Optional）
-
-
-```shell
-// support mysql、mongo、redis 
-ginny repo user -d mysql
-
-```
 ### 4. Make 
 
 ```shell
-// .pb.go and service
-make proto
 
 // wire
 make wire
@@ -111,7 +96,7 @@ if you use vscode , edit the `.vscode/launch.json` , like this:
     ]
 }
 ```
-Select `Launch GoPackage` to debug run. Try to call `http://localhost:9090/` or `grpc://127.0.0.1:9000/` .
+Select `Launch GoPackage` to debug run. Try to call `http://localhost:8080/` or `grpc://127.0.0.1:9000/` .
 
 ## Example
 
