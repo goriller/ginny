@@ -13,11 +13,16 @@ import (
 	"go.uber.org/zap"
 )
 
-// AppProviderSet
-var AppProviderSet = wire.NewSet(
-	logger.Default,
-	config.ConfigProviderSet,
-	NewOption, NewApp)
+var (
+	ctx context.Context
+	cc  context.CancelFunc
+	// AppProviderSet
+	AppProviderSet = wire.NewSet(
+		logger.Default,
+		config.ConfigProviderSet,
+		NewOption, GetContext, NewApp,
+	)
+)
 
 // RegistrarFunc
 type RegistrarFunc func(app *Application) error
@@ -28,9 +33,10 @@ type Application struct {
 	Version string
 	Option  *Option
 	Logger  *zap.Logger
-	Ctx     context.Context
-	regFunc RegistrarFunc
 	Server  *server.Server
+	Ctx     context.Context
+
+	regFunc RegistrarFunc
 }
 
 // Option
@@ -52,6 +58,12 @@ func NewOption(v *viper.Viper) (*Option, error) {
 	return o, nil
 }
 
+// GetContext
+func GetContext() context.Context {
+	ctx, cc = context.WithTimeout(context.Background(), 10*time.Second)
+	return ctx
+}
+
 // NewApp
 func NewApp(
 	option *Option,
@@ -59,7 +71,6 @@ func NewApp(
 	regFunc RegistrarFunc,
 	opts ...server.Option,
 ) (*Application, error) {
-	ctx, cc := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cc()
 
 	app := &Application{
