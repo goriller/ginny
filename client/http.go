@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -29,9 +28,7 @@ import (
 
 const (
 	// DefaultTimeout
-	DefaultConnectTimeout = time.Second * 10
-	DefaultReadTimeout    = time.Second * 10
-	DefaultWriteTimeout   = time.Second * 10
+	DefaultTimeout = time.Second * 10
 	// DefaultRetryTimes 如果请求失败，最多重试3次
 	DefaultRetryTimes = 3
 	// DefaultRetryDelay 在重试前，延迟等待100毫秒
@@ -45,9 +42,7 @@ type ClientOptions struct {
 	logger                *zap.Logger
 	tracer                opentracing.Tracer
 	resolver              Resolver
-	connectTimeout        time.Duration
-	readTimeout           time.Duration
-	writeTimeout          time.Duration
+	timeout               time.Duration
 	retryTimes            int
 	consulOptions         *consulApi.Config
 	protoJSONMarshaller   *protojson.MarshalOptions
@@ -57,24 +52,10 @@ type ClientOptions struct {
 // ClientOptional
 type ClientOptional func(o *ClientOptions)
 
-// WithConnectTimeout
-func WithConnectTimeout(t time.Duration) ClientOptional {
+// WithReqestTimeout
+func WithReqestTimeout(t time.Duration) ClientOptional {
 	return func(opt *ClientOptions) {
-		opt.connectTimeout = t
-	}
-}
-
-// WithReadTimeout
-func WithReadTimeout(t time.Duration) ClientOptional {
-	return func(opt *ClientOptions) {
-		opt.readTimeout = t
-	}
-}
-
-// WithWriteTimeout
-func WithWriteTimeout(t time.Duration) ClientOptional {
-	return func(opt *ClientOptions) {
-		opt.writeTimeout = t
+		opt.timeout = t
 	}
 }
 
@@ -144,25 +125,17 @@ func NewClient(ctx context.Context, uri string, opts ...ClientOptional) (*Client
 // newClientConn
 func newClientConn(ctx context.Context, o *ClientOptions) (*http.Client, error) {
 	transport := &http.Transport{
-		DialContext: (&net.Dialer{
-			Timeout:   (time.Duration(o.connectTimeout)) * time.Second,
-			KeepAlive: 30 * time.Second,
-			DualStack: true,
-		}).DialContext,
-		MaxIdleConns:          100,
-		IdleConnTimeout:       90 * time.Second,
-		MaxIdleConnsPerHost:   100, //默认是2
-		ResponseHeaderTimeout: time.Duration(o.readTimeout) * time.Second,
-		ExpectContinueTimeout: time.Duration(o.writeTimeout) * time.Second,
+		MaxIdleConns:        100,
+		IdleConnTimeout:     90 * time.Second,
+		MaxIdleConnsPerHost: 100, //默认是2
 	}
 	if o.consulOptions != nil {
 		return consulApi.NewHttpClient(transport, o.consulOptions.TLSConfig)
 	}
 
-	to := o.connectTimeout + o.readTimeout + o.writeTimeout
 	return &http.Client{
 		Transport: transport,
-		Timeout:   time.Duration(to) * time.Second, //默认是0，无超时
+		Timeout:   0, //默认是0，无超时
 	}, nil
 }
 
@@ -197,9 +170,6 @@ func (c *Client) Request(ctx context.Context, method,
 		reqBody  []byte
 		resp     *http.Response
 	)
-	defer func() {
-		c.onRequestClose(ctx, method, httpRequestURL, tryTimes, start, header, resp.StatusCode, err)
-	}()
 
 	reqBody, err = c.buildRequestBody(ctx, header, reqData)
 	for i := 0; i <= c.options.retryTimes; i++ {
@@ -216,14 +186,18 @@ func (c *Client) Request(ctx context.Context, method,
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+
+	defer func() {
+		resp.Body.Close()
+		c.onRequestClose(ctx, method, httpRequestURL, tryTimes, start, header, resp.StatusCode, err)
+	}()
 
 	err = c.parseResponseBody(ctx, resp.Body, respDataPtr)
 	if err != nil {
-		return
+		return err
 	}
 
-	if resp.StatusCode >= http.StatusOK && resp.StatusCode < http.StatusMultipleChoices {
+	if resp.StatusCode > http.StatusOK && resp.StatusCode < http.StatusMultipleChoices {
 		return status.Error(codes.Code(resp.StatusCode), "http status code is not 200")
 	}
 	return nil
@@ -246,6 +220,7 @@ func (c *Client) request(ctx context.Context, method, uri string,
 		return nil, err
 	}
 	request.Header = header
+	c.client.Timeout = time.Duration(c.options.timeout) * time.Second
 	return ctxhttp.Do(ctx, c.client, request)
 }
 
@@ -339,10 +314,8 @@ func parseTrace(ctx context.Context, method, tag string, tracer opentracing.Trac
 // parseOptions
 func parseOptions(ctx context.Context, u *url.URL, options ...ClientOptional) (*ClientOptions, error) {
 	o := &ClientOptions{
-		connectTimeout: DefaultConnectTimeout,
-		readTimeout:    DefaultReadTimeout,
-		writeTimeout:   DefaultWriteTimeout,
-		retryTimes:     DefaultRetryTimes,
+		timeout:    DefaultTimeout,
+		retryTimes: DefaultRetryTimes,
 		protoJSONMarshaller: &protojson.MarshalOptions{
 			UseProtoNames: true,
 		},
