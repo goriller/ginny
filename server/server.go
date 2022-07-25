@@ -16,7 +16,6 @@ import (
 	"github.com/goriller/ginny/server/mux"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	consulApi "github.com/hashicorp/consul/api"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -62,7 +61,7 @@ func (s *Server) Start() {
 	if s.options.autoHttp {
 		fns = append(fns, s.startHTTP)
 	}
-	if s.options.consul != nil {
+	if s.options.discover != nil {
 		fns = append(fns, s.register)
 	}
 
@@ -100,7 +99,7 @@ func (s *Server) startHTTP() error {
 	return nil
 }
 
-// RegisterService 注册函数
+// RegisterService registering gRPC service
 func (s *Server) RegisterService(desc *grpc.ServiceDesc, serviceImpl interface{}) {
 	s.grpcServer.RegisterService(desc, serviceImpl)
 	// auto bind http handler
@@ -114,7 +113,7 @@ func (s *Server) RegisterService(desc *grpc.ServiceDesc, serviceImpl interface{}
 }
 
 // Close
-// 默认超时1分钟再关闭，K8S service 关闭策略
+// K8s closes after 60 seconds by default
 // refer: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
 func (s *Server) Close(ctx context.Context) error {
 	if s.httpServer != nil {
@@ -149,71 +148,80 @@ func (s *Server) Close(ctx context.Context) error {
 	return nil
 }
 
-// Handle 注册自定义HTTP路由
+// Handle registering HTTP handler
 func (s *Server) Handle(method, path string, h runtime.HandlerFunc) {
 	s.mux.Handle(method, path, h)
 }
 
-// ServeMux 返回grpc gateay 原生的 server mux
+// ServeMux retrun gRPC-GateWay server mux
 func (s *Server) ServeMux() *runtime.ServeMux {
 	return s.mux.ServeMux()
 }
 
-// register
+// register registering to service discovery
 func (s *Server) register() error {
-	if s.options.consul == nil {
+	if s.options.discover == nil {
 		return nil
 	}
+
 	i := strings.LastIndex(":", s.options.grpcAddr)
 	host := string([]byte(s.options.grpcAddr)[:i])
 	port, err := strconv.Atoi(string([]byte(s.options.grpcAddr)[i:]))
 	if err != nil {
 		return err
 	}
-
-	for key, _ := range s.grpcServer.GetServiceInfo() {
-		check := &consulApi.AgentServiceCheck{
-			Interval:                       "10s",
-			DeregisterCriticalServiceAfter: "60m",
-			TCP:                            s.options.grpcAddr,
-		}
-
+	// gRPC
+	for key := range s.grpcServer.GetServiceInfo() {
 		id := fmt.Sprintf("%s[%s]", key, s.options.grpcAddr)
-
-		svcReg := &consulApi.AgentServiceRegistration{
-			ID:                id,
-			Name:              key,
-			Tags:              []string{"grpc"},
-			Port:              port,
-			Address:           host,
-			EnableTagOverride: true,
-			Check:             check,
-			Checks:            nil,
-		}
-
-		err := s.options.consul.Agent().ServiceRegister(svcReg)
+		err := s.options.discover.ServiceRegister(id, key, host, port, []string{"grpc"}, nil)
 		if err != nil {
 			return errors.Wrap(err, "register service error")
 		}
 		s.logger.Log(logging.INFO, "register grpc service success: "+id)
 	}
+	// HTTP server
+	if s.options.autoHttp {
+		id := fmt.Sprintf("%s[%s]", "http", s.options.httpAddr)
+		i := strings.LastIndex(":", s.options.grpcAddr)
+		host := string([]byte(s.options.httpAddr)[:i])
+		port, err := strconv.Atoi(string([]byte(s.options.httpAddr)[i:]))
+		if err != nil {
+			return err
+		}
+		err = s.options.discover.ServiceRegister(id, s.options.httpAddr, host, port, []string{"http"}, nil)
+		if err != nil {
+			return errors.Wrap(err, "register http server error")
+		}
+		s.logger.Log(logging.INFO, "register http server success: "+id)
+	}
 
 	return nil
 }
 
-// deRegister
+// deRegister deregistering from service discovery
 func (s *Server) deRegister() error {
-	if s.options.consul == nil {
+	if s.options.discover == nil {
 		return nil
 	}
-	for key, _ := range s.grpcServer.GetServiceInfo() {
+	// gRPC
+	for key := range s.grpcServer.GetServiceInfo() {
 		id := fmt.Sprintf("%s[%s]", key, s.options.grpcAddr)
 
-		err := s.options.consul.Agent().ServiceDeregister(id)
+		err := s.options.discover.ServiceDeregister(id)
 		if err != nil {
 			return errors.Wrapf(err, "deregister service error[id=%s]", id)
 		}
 		s.logger.Log(logging.INFO, "deregister service success: "+id)
+	}
+
+	// HTTP server
+	if s.options.autoHttp {
+		id := fmt.Sprintf("%s[%s]", "http", s.options.httpAddr)
+		err := s.options.discover.ServiceDeregister(id)
+		if err != nil {
+			return errors.Wrapf(err, "deregister http server error[id=%s]", id)
+		}
+		s.logger.Log(logging.INFO, "deregister http server success: "+id)
 	}
 
 	return nil

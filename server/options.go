@@ -14,7 +14,6 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tracing"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/validator"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	consulApi "github.com/hashicorp/consul/api"
 	"github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
@@ -28,8 +27,8 @@ type options struct {
 	grpcAddr string
 	httpAddr string
 
-	consul *consulApi.Client
-	tracer opentracing.Tracer
+	discover Discover
+	tracer   opentracing.Tracer
 
 	muxOptions                 []mux.Optional
 	logger                     grpc_logging.Logger
@@ -40,6 +39,12 @@ type options struct {
 	unaryServerInterceptors    []grpc.UnaryServerInterceptor
 	requestFieldExtractorFunc  logging.RequestFieldExtractorFunc
 	responseFieldExtractorFunc logging.ResponseFieldExtractorFunc
+}
+
+// Discover service discovery
+type Discover interface {
+	ServiceRegister(id, name, addr string, port int, tags []string, meta map[string]string) error
+	ServiceDeregister(id string) error
 }
 
 var defaultOptions = &options{
@@ -90,11 +95,11 @@ func WithHttpAddr(addr string) Option {
 	}
 }
 
-// WithConsul
-func WithConsul(consul *consulApi.Client) Option {
+// WithDiscover
+func WithDiscover(d Discover) Option {
 	return func(o *options) {
-		if consul != nil {
-			o.consul = consul
+		if d != nil {
+			o.discover = d
 		}
 	}
 }
