@@ -23,7 +23,7 @@ var (
 
 func init() {
 	// 远程配置  etcd、consul
-	flag.StringVar(&remoteConfig, "remote", "", "remote config provider: etcd://127.0.0.1:6577/test or consul://127.0.0.1:6577/test ")
+	flag.StringVar(&remoteConfig, "remote", "", "remote config provider: etcd://127.0.0.1:8500/test or consul://127.0.0.1:6577/test ")
 	// 配置文件路径
 	flag.StringVar(&defaultConfigPath, "conf", "./configs/config.yaml", "uri to load config")
 }

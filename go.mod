@@ -12,8 +12,6 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.0-rc.2.0.20210807094637-274df5968e19
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.1-0.20200507082539-9abf3eb82b4a
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.10.3
-	github.com/hashicorp/consul/api v1.13.0
-	github.com/mbobakov/grpc-consul-resolver v1.4.4
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/viper v1.12.0

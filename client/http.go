@@ -15,7 +15,6 @@ import (
 	"time"
 
 	"github.com/goriller/ginny/logging"
-	consulApi "github.com/hashicorp/consul/api"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"go.uber.org/zap"
@@ -38,13 +37,12 @@ const (
 
 // ClientOptions
 type ClientOptions struct {
-	target                string // "consul://xxx" or ip+port/path
+	target                string // ip+port/path
 	logger                *zap.Logger
 	tracer                opentracing.Tracer
 	resolver              Resolver
 	timeout               time.Duration
 	retryTimes            int
-	consulOptions         *consulApi.Config
 	protoJSONMarshaller   *protojson.MarshalOptions
 	protoJSONUnmarshaller *protojson.UnmarshalOptions
 }
@@ -63,13 +61,6 @@ func WithReqestTimeout(t time.Duration) ClientOptional {
 func WithRetryTimes(retryTimes int) ClientOptional {
 	return func(opt *ClientOptions) {
 		opt.retryTimes = retryTimes
-	}
-}
-
-// WithConsulConfig
-func WithConsulConfig(consul *consulApi.Config) ClientOptional {
-	return func(opt *ClientOptions) {
-		opt.consulOptions = consul
 	}
 }
 
@@ -128,9 +119,6 @@ func newClientConn(ctx context.Context, o *ClientOptions) (*http.Client, error) 
 		MaxIdleConns:        100,
 		IdleConnTimeout:     90 * time.Second,
 		MaxIdleConnsPerHost: 100, //默认是2
-	}
-	if o.consulOptions != nil {
-		return consulApi.NewHttpClient(transport, o.consulOptions.TLSConfig)
 	}
 
 	return &http.Client{

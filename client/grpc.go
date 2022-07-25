@@ -15,7 +15,6 @@ import (
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/timeout"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
-	_ "github.com/mbobakov/grpc-consul-resolver" // It's important
 	"github.com/opentracing/opentracing-go"
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
@@ -29,7 +28,7 @@ import (
 
 // GrpcClientOptions
 type GrpcClientOptions struct {
-	target          string // "consul://xxx" or ip+port/serviceName
+	target          string // ip+port/serviceName
 	timeout         time.Duration
 	retry           int
 	loadBalance     string
