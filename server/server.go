@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/goriller/ginny-util/graceful"
+	"github.com/goriller/ginny-util/ip"
 	"github.com/goriller/ginny/health"
 	"github.com/goriller/ginny/server/mux"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
@@ -164,35 +165,46 @@ func (s *Server) register() error {
 		return nil
 	}
 
-	i := strings.LastIndex(":", s.options.grpcAddr)
-	host := string([]byte(s.options.grpcAddr)[:i])
-	port, err := strconv.Atoi(string([]byte(s.options.grpcAddr)[i:]))
+	if !strings.Contains(s.options.grpcAddr, "://") {
+		s.options.grpcAddr = fmt.Sprintf("grpc://%s", s.options.grpcAddr)
+	}
+	u, err := url.Parse(s.options.grpcAddr)
 	if err != nil {
 		return err
 	}
+	var host = u.Hostname()
+	if host == "" {
+		host = ip.GetLocalIP4()
+	}
+
 	// gRPC
 	for key := range s.grpcServer.GetServiceInfo() {
-		id := fmt.Sprintf("%s[%s]", key, s.options.grpcAddr)
-		err := s.options.discover.ServiceRegister(id, key, host, port, []string{"grpc"}, nil)
+		name := fmt.Sprintf("%s[%s/%s]", "grpc", s.options.grpcAddr, key)
+		err := s.options.discover.ServiceRegister(name, fmt.Sprintf("%s:%s", host, u.Port()), []string{"grpc"}, nil)
 		if err != nil {
 			return errors.Wrap(err, "register service error")
 		}
-		s.logger.Log(logging.INFO, "register grpc service success: "+id)
+		s.logger.Log(logging.INFO, "register grpc service success: "+name)
 	}
 	// HTTP server
 	if s.options.autoHttp {
-		id := fmt.Sprintf("%s[%s]", "http", s.options.httpAddr)
-		i := strings.LastIndex(":", s.options.grpcAddr)
-		host := string([]byte(s.options.httpAddr)[:i])
-		port, err := strconv.Atoi(string([]byte(s.options.httpAddr)[i:]))
+		if !strings.Contains(s.options.httpAddr, "://") {
+			s.options.httpAddr = fmt.Sprintf("http://%s", s.options.httpAddr)
+		}
+		u, err := url.Parse(s.options.httpAddr)
 		if err != nil {
 			return err
 		}
-		err = s.options.discover.ServiceRegister(id, s.options.httpAddr, host, port, []string{"http"}, nil)
+		host = u.Hostname()
+		if host == "" {
+			host = ip.GetLocalIP4()
+		}
+		name := fmt.Sprintf("%s[%s]", "http", s.options.httpAddr)
+		err = s.options.discover.ServiceRegister(name, fmt.Sprintf("%s:%s", host, u.Port()), []string{"http"}, nil)
 		if err != nil {
 			return errors.Wrap(err, "register http server error")
 		}
-		s.logger.Log(logging.INFO, "register http server success: "+id)
+		s.logger.Log(logging.INFO, "register http server success: "+name)
 	}
 
 	return nil
@@ -205,23 +217,22 @@ func (s *Server) deRegister() error {
 	}
 	// gRPC
 	for key := range s.grpcServer.GetServiceInfo() {
-		id := fmt.Sprintf("%s[%s]", key, s.options.grpcAddr)
-
-		err := s.options.discover.ServiceDeregister(id)
+		name := fmt.Sprintf("%s[%s/%s]", "http", s.options.grpcAddr, key)
+		err := s.options.discover.ServiceDeregister(name)
 		if err != nil {
-			return errors.Wrapf(err, "deregister service error[id=%s]", id)
+			return errors.Wrapf(err, "deregister service error[id=%s]", name)
 		}
-		s.logger.Log(logging.INFO, "deregister service success: "+id)
+		s.logger.Log(logging.INFO, "deregister service success: "+name)
 	}
 
 	// HTTP server
 	if s.options.autoHttp {
-		id := fmt.Sprintf("%s[%s]", "http", s.options.httpAddr)
-		err := s.options.discover.ServiceDeregister(id)
+		name := fmt.Sprintf("%s[%s]", "http", s.options.httpAddr)
+		err := s.options.discover.ServiceDeregister(name)
 		if err != nil {
-			return errors.Wrapf(err, "deregister http server error[id=%s]", id)
+			return errors.Wrapf(err, "deregister http server error[id=%s]", name)
 		}
-		s.logger.Log(logging.INFO, "deregister http server success: "+id)
+		s.logger.Log(logging.INFO, "deregister http server success: "+name)
 	}
 
 	return nil

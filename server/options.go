@@ -43,8 +43,8 @@ type options struct {
 
 // Discover service discovery
 type Discover interface {
-	ServiceRegister(id, name, addr string, port int, tags []string, meta map[string]string) error
-	ServiceDeregister(id string) error
+	ServiceRegister(name, addr string, tags []string, meta map[string]string) error
+	ServiceDeregister(name string) error
 }
 
 var defaultOptions = &options{
