@@ -276,7 +276,7 @@ func evaluateOptions(ctx context.Context, u *url.URL, opts []GrpcClientOptional)
 	}
 
 	if opt.resolver != nil {
-		addr, err := opt.resolver(ctx, u.String())
+		addr, err := opt.resolver(ctx, u.String(), "grpc")
 		if err != nil {
 			return nil, err
 		}

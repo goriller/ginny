@@ -14,8 +14,7 @@ import (
 )
 
 var (
-	ctx context.Context
-	cc  context.CancelFunc
+	cc context.CancelFunc
 	// AppProviderSet
 	AppProviderSet = wire.NewSet(
 		logger.Default,
@@ -60,12 +59,14 @@ func NewOption(v *viper.Viper) (*Option, error) {
 
 // GetContext
 func GetContext() context.Context {
+	var ctx context.Context
 	ctx, cc = context.WithTimeout(context.Background(), 10*time.Second)
 	return ctx
 }
 
 // NewApp
 func NewApp(
+	ctx context.Context,
 	option *Option,
 	logger *zap.Logger,
 	regFunc RegistrarFunc,
@@ -103,4 +104,9 @@ func (a *Application) Start() error {
 	}
 	a.Server.Start()
 	return nil
+}
+
+// Stop
+func (a *Application) Stop(ctx context.Context) error {
+	return a.Server.Close(ctx)
 }

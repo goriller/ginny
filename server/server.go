@@ -73,14 +73,14 @@ func (s *Server) Start() {
 func (s *Server) startGRPC() error {
 	lis, err := net.Listen("tcp", s.options.grpcAddr)
 	if err != nil {
-		s.options.logger.Log(logging.ERROR, "Listen grpc "+s.options.grpcAddr+" error for "+err.Error())
+		s.options.logger.Log(logging.ERROR, "listen grpc "+s.options.grpcAddr+" error for "+err.Error())
 		return err
 	}
 	s.healthServer.Start(s.grpcServer)
 
 	s.logger.Log(logging.INFO, "Start grpc at "+s.options.grpcAddr)
 	if err := s.grpcServer.Serve(lis); err != nil {
-		return errors.New("Start grpc failed for " + err.Error())
+		return errors.New("start grpc failed for " + err.Error())
 	}
 	return nil
 }
@@ -90,12 +90,12 @@ func (s *Server) startHTTP() error {
 	if s.httpServer == nil {
 		return nil
 	}
-	s.logger.Log(logging.INFO, "Start http at "+s.options.httpAddr)
+	s.logger.Log(logging.INFO, "start http at "+s.options.httpAddr)
 	if err := s.httpServer.ListenAndServe(); err != nil {
 		if errors.Is(err, http.ErrServerClosed) {
 			return nil
 		}
-		return errors.New("Start http failed for " + err.Error())
+		return errors.New("start http failed for " + err.Error())
 	}
 	return nil
 }
@@ -126,7 +126,7 @@ func (s *Server) Close(ctx context.Context) error {
 	// deRegister
 	err := s.deRegister()
 	if err != nil {
-		s.logger.Log(logging.WARNING, "DeRegister service failed: "+err.Error())
+		s.logger.Log(logging.WARNING, "deregister service failed: "+err.Error())
 	}
 	// prestop
 	preStop := os.Getenv("PRE_STOP")
@@ -141,7 +141,7 @@ func (s *Server) Close(ctx context.Context) error {
 	if s.httpServer != nil {
 		err := s.httpServer.Shutdown(ctx)
 		if err != nil {
-			s.logger.Log(logging.WARNING, "Shutdown http failed for "+err.Error())
+			s.logger.Log(logging.WARNING, "shutdown http failed for "+err.Error())
 		}
 	}
 	s.grpcServer.GracefulStop()

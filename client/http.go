@@ -323,7 +323,7 @@ func parseOptions(ctx context.Context, u *url.URL, options ...ClientOptional) (*
 		o.target = u.String()
 	}
 	if o.resolver != nil {
-		addr, err := o.resolver(ctx, u.String())
+		addr, err := o.resolver(ctx, u.String(), "http")
 		if err != nil {
 			return nil, err
 		}
