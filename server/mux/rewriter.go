@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/goriller/ginny/logging"
+	"github.com/goriller/ginny/interceptor/logging"
 	"google.golang.org/grpc/status"
 )
 

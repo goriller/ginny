@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/goriller/ginny/interceptor"
-	"github.com/goriller/ginny/logging"
+	"github.com/goriller/ginny/interceptor/logging"
 	"github.com/goriller/ginny/server/mux"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
 	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"

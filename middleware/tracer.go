@@ -8,7 +8,7 @@ import (
 
 	"github.com/goriller/ginny-util/ip"
 	"github.com/goriller/ginny/interceptor"
-	"github.com/goriller/ginny/logging"
+	"github.com/goriller/ginny/interceptor/logging"
 	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
 	"github.com/opentracing/opentracing-go"

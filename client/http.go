@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goriller/ginny/logging"
+	"github.com/goriller/ginny/interceptor/logging"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"go.uber.org/zap"
