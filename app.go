@@ -64,8 +64,6 @@ func NewApp(
 	regFunc RegistrarFunc,
 	opts ...server.Option,
 ) (*Application, error) {
-	defer cc()
-
 	app := &Application{
 		Name:    option.Name,
 		Version: option.Version,
