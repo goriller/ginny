@@ -13,7 +13,6 @@ import (
 )
 
 var (
-	cc context.CancelFunc
 	// AppProviderSet
 	AppProviderSet = wire.NewSet(
 		logger.Default,
