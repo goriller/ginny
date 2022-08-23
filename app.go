@@ -2,7 +2,6 @@ package ginny
 
 import (
 	"context"
-	"time"
 
 	"github.com/google/wire"
 	"github.com/goriller/ginny/config"
@@ -19,7 +18,7 @@ var (
 	AppProviderSet = wire.NewSet(
 		logger.Default,
 		config.ConfigProviderSet,
-		NewOption, GetContext, NewApp,
+		NewOption, NewApp,
 	)
 )
 
@@ -55,13 +54,6 @@ func NewOption(v *viper.Viper) (*Option, error) {
 	}
 
 	return o, nil
-}
-
-// GetContext
-func GetContext() context.Context {
-	var ctx context.Context
-	ctx, cc = context.WithTimeout(context.Background(), 10*time.Second)
-	return ctx
 }
 
 // NewApp
