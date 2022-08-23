@@ -1,8 +1,6 @@
 package mux
 
 import (
-	"context"
-	"net/http"
 	"strings"
 
 	"github.com/goriller/ginny/middleware"
@@ -11,9 +9,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
-	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/protobuf/encoding/protojson"
-	"google.golang.org/protobuf/proto"
 )
 
 // MuxOption
@@ -166,18 +162,4 @@ func evaluateOptions(opts []Optional) *MuxOption {
 		o(optCopy)
 	}
 	return optCopy
-}
-
-func forwardResponseOptionFunc(ctx context.Context, w http.ResponseWriter, message proto.Message) error {
-	if body, ok := message.(*httpbody.HttpBody); ok {
-		if body.ContentType == typeLocation {
-			location := string(body.Data)
-			w.Header().Set(typeLocation, location)
-			body.ContentType = "text/html; charset=utf-8"
-			w.Header().Set("Content-Type", body.ContentType)
-			w.WriteHeader(http.StatusFound)
-			body.Data = []byte("<a href=\"" + htmlReplacer.Replace(location) + "\">Found</a>.\n")
-		}
-	}
-	return nil
 }

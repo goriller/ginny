@@ -173,7 +173,7 @@ func TracerServerUnaryInterceptor(tracer opentracing.Tracer) grpc.UnaryServerInt
 			)
 			defer span.Finish()
 
-			ctx = ChainContext(opentracing.ContextWithSpan(ctx, span))
+			ctx = ChainContext(opentracing.ContextWithSpan(ctx, span), md)
 		}
 
 		return handler(ctx, req)
@@ -209,45 +209,34 @@ func TracerServerStreamInterceptor(tracer opentracing.Tracer) grpc.StreamServerI
 
 			ctx = opentracing.ContextWithSpan(ctx, span)
 			wrapped := middleware.WrapServerStream(ss)
-			wrapped.WrappedContext = ChainContext(ctx)
+			wrapped.WrappedContext = ChainContext(ctx, md)
 			return handler(srv, wrapped)
 		}
 	}
 }
 
 // ChainContext
-func ChainContext(ctx context.Context) context.Context {
+func ChainContext(ctx context.Context, md metadata.MD) context.Context {
 	var (
-		otHeaders = []string{
-			logging.RequestIDHeader,
-			logging.TraceidHeader,
-			logging.SpanidHeader,
-			logging.ParentspanidHeader,
-			logging.SampledHeader,
-			logging.FlagsHeader,
-			logging.SpanContextHeader}
+		reqId     string
+		otHeaders = logging.HeaderMap
 	)
 	preTags := tags.Extract(ctx)
-	headersIn, _ := metadata.FromIncomingContext(ctx)
-	if headersIn == nil {
-		headersIn = metadata.New(nil)
-	}
 
-	var reqId string
 	for _, v := range otHeaders {
-		val := headersIn.Get(v)
+		val := md.Get(v)
 		if len(val) > 0 {
-			if v == logging.RequestIDHeader {
+			if v == logging.RequestId {
 				reqId = val[0]
 			}
 			preTags.Set(v, strings.Join(val, ","))
 		}
 	}
-	if !preTags.Has(logging.RequestId) && reqId == "" {
+	if !preTags.Has(logging.RequestId) || reqId == "" {
 		reqId = uuid.New().String()
 	}
 	preTags.Set(logging.RequestId, reqId)
-	headersIn.Set(logging.RequestId, reqId)
-	context := metadata.NewOutgoingContext(ctx, headersIn)
+	md.Set(logging.RequestId, reqId)
+	context := metadata.NewOutgoingContext(ctx, md)
 	return context
 }

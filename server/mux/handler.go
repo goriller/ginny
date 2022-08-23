@@ -15,6 +15,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
+	"google.golang.org/genproto/googleapis/api/httpbody"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
@@ -26,7 +27,7 @@ import (
 const (
 	statusOKPrefix         = 2
 	statusBadRequestPrefix = 4
-	fallback               = `{"code": 13,"message":"failed to marshal error message"}`
+	fallback               = `{"code": %d,"message":"%s"}`
 )
 
 // codesErrors some errors string for grpc codes
@@ -164,17 +165,13 @@ func WriteHTTPErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 	preTags.Set("code", strconv.Itoa(int(s.Code())))
 	preTags.Set("message", s.Message())
 
-	_, e := defaultMuxOption.bodyWriter(w, r, s)
-	// newErrorBytes(requestId, apiModel, s, optsWare.errorMarshaler, optsWare.newErrorBody)
-	if e != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		if _, err := io.WriteString(w, fallback); err != nil {
-			grpclog.Infof("Failed to write response: %v", err)
-		}
+	if wt, ok := w.(*responseWriter); ok {
+		wt.s = s
+		wt.WriteHeader(CodeToStatus(s.Code()))
+		_, _ = wt.Write(nil)
 		return
 	}
-	w.WriteHeader(CodeToStatus(s.Code()))
-
+	fallbackFunc(w, s.Code(), s.Message())
 }
 
 // handlerWithMiddleWares handler with middle wares.
@@ -245,4 +242,20 @@ func handlerGRPCRequest(ctx context.Context, marshaler runtime.Marshaler,
 	}
 	msg := resps[0].Interface()
 	return msg.(proto.Message), metadata, nil
+}
+
+// forwardResponseOptionFunc
+func forwardResponseOptionFunc(ctx context.Context, w http.ResponseWriter, message proto.Message) error {
+	if body, ok := message.(*httpbody.HttpBody); ok {
+		if body.ContentType == typeLocation {
+			location := string(body.Data)
+			w.Header().Set(typeLocation, location)
+			body.ContentType = "text/html; charset=utf-8"
+			w.Header().Set("Content-Type", body.ContentType)
+			w.WriteHeader(http.StatusFound)
+			body.Data = []byte("<a href=\"" + htmlReplacer.Replace(location) + "\">Found</a>.\n")
+		}
+	}
+
+	return nil
 }

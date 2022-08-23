@@ -27,8 +27,8 @@ func NewMuxServe(logger *zap.Logger, opts ...Optional) *MuxServe {
 
 	// middleWares
 	var middlewares = []middleware.MuxMiddleware{
-		RecoverMiddleWare,
-		middleware.TracerMiddleWare(o.tracer, o.logger),
+		RecoverMiddleWare(o.logger),
+		middleware.TracerMiddleWare(o.tracer),
 		health.HealthMiddleware,
 	}
 	if len(o.middleWares) > 0 {

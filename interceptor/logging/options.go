@@ -8,7 +8,7 @@ import (
 var (
 	RequestId            = "request_id"
 	RequestIDHeader      = "x-request-id"
-	CaptchaTokenHeader   = "x-captcha-token"
+	DeviceIDHeader       = "x-device-id"
 	PathHeader           = "x-request-path"
 	MethodHeader         = "x-request-method"
 	TraceidHeader        = "x-b3-traceid"
@@ -18,6 +18,18 @@ var (
 	FlagsHeader          = "x-b3-flags"
 	SpanContextHeader    = "x-ot-span-context"
 	ResponseStatusHeader = "x-response-status"
+
+	HeaderMap = map[string]string{
+		RequestIDHeader:    "request_id",
+		DeviceIDHeader:     "device_id",
+		TraceidHeader:      "traceid",
+		SpanidHeader:       "spanid",
+		SpanidHeader:       "spanid",
+		ParentspanidHeader: "parentspanid",
+		SampledHeader:      "sampled",
+		FlagsHeader:        "flags",
+		SpanContextHeader:  "span_context",
+	}
 
 	defaultOptions = &options{
 		shouldLog: DefaultLoggingDeciderMethod,

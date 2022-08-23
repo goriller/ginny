@@ -55,12 +55,12 @@ func (s *HealthServer) AuthFuncOverride(ctx context.Context, _ string) (context.
 }
 
 // HealthMiddleware HTTP健康检查中间件
-func HealthMiddleware(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+func HealthMiddleware(h http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/healthz" {
 			_, _ = w.Write([]byte(healthpb.HealthCheckResponse_SERVING.String()))
 			return
 		}
 		h.ServeHTTP(w, r)
-	})
+	}
 }
