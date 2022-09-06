@@ -80,7 +80,7 @@ func ChainHeader(w http.ResponseWriter, r *http.Request) context.Context {
 		reqId = uuid.New().String()
 	}
 	preTags.Set(logging.RequestId, reqId)
-	w.Header().Set(logging.RequestId, reqId)
+	w.Header().Set(logging.RequestIDHeader, reqId)
 	context := tags.SetInContext(ctx, preTags)
 	return context
 }

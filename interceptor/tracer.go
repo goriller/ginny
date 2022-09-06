@@ -236,7 +236,7 @@ func ChainContext(ctx context.Context, md metadata.MD) context.Context {
 		reqId = uuid.New().String()
 	}
 	preTags.Set(logging.RequestId, reqId)
-	md.Set(logging.RequestId, reqId)
+	md.Set(logging.RequestIDHeader, reqId)
 	context := metadata.NewOutgoingContext(ctx, md)
 	return context
 }
