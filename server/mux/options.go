@@ -3,7 +3,9 @@ package mux
 import (
 	"strings"
 
+	"github.com/goriller/ginny/interceptor/limit"
 	"github.com/goriller/ginny/middleware"
+	"github.com/goriller/ginny/server/mux/rewriter"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -16,8 +18,9 @@ import (
 type MuxOption struct {
 	logger            logging.Logger
 	tracer            opentracing.Tracer
+	limiter           *limit.Limiter
 	bodyMarshaler     runtime.Marshaler
-	bodyWriter        bodyReWriterFunc
+	bodyWriter        rewriter.BodyReWriterFunc
 	errorMarshaler    runtime.Marshaler
 	errorHandler      runtime.ErrorHandlerFunc
 	runTimeOpts       []runtime.ServeMuxOption
@@ -66,7 +69,7 @@ func WithErrorHandler(fn runtime.ErrorHandlerFunc) Optional {
 }
 
 // WithBodyWriter
-func WithBodyWriter(b bodyReWriterFunc) Optional {
+func WithBodyWriter(b rewriter.BodyReWriterFunc) Optional {
 	return func(o *MuxOption) {
 		if b != nil {
 			o.bodyWriter = b
@@ -117,6 +120,13 @@ func WithTracer(tracer opentracing.Tracer) Optional {
 	}
 }
 
+// WithLimiter performs rate limiting on the request.
+func WithLimiter(l *limit.Limiter) Optional {
+	return func(o *MuxOption) {
+		o.limiter = l
+	}
+}
+
 // WithMiddleWares pluggable function that performs middle wares.
 func WithMiddleWares(middleWares ...middleware.MuxMiddleware) Optional {
 	return func(o *MuxOption) {
@@ -135,7 +145,13 @@ func fullOptions(logger *zap.Logger,
 		o.errorHandler = defaultErrorHandler
 	}
 	if o.bodyWriter == nil {
-		o.bodyWriter = defaultBodyWriter
+		o.bodyWriter = rewriter.DefaultBodyWriter(o.bodyMarshaler, o.bodyMarshaler, o.withoutHTTPStatus)
+	}
+
+	// limiter
+	if o.limiter != nil {
+		o.middleWares = append(o.middleWares,
+			middleware.LimitMiddleWare(o.limiter))
 	}
 
 	runtimeOpt := []runtime.ServeMuxOption{

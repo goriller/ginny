@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/goriller/ginny/interceptor"
+	"github.com/goriller/ginny/interceptor/limit"
 	"github.com/goriller/ginny/interceptor/logging"
 	"github.com/goriller/ginny/server/mux"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
@@ -33,6 +34,7 @@ type options struct {
 	muxOptions                 []mux.Optional
 	logger                     grpc_logging.Logger
 	loggingDecider             logging.Decider
+	limiter                    *limit.Limiter
 	grpcServerOpts             []grpc.ServerOption
 	withOutKeepAliveOpts       bool
 	streamServerInterceptors   []grpc.StreamServerInterceptor
@@ -91,6 +93,7 @@ func WithHttpAddr(addr string) Option {
 	return func(o *options) {
 		if addr != "" {
 			o.httpAddr = addr
+			o.autoHttp = true
 		}
 	}
 }
@@ -113,19 +116,19 @@ func WithTracer(tracer opentracing.Tracer) Option {
 	}
 }
 
-// WithHttp
-func WithHttp(h bool) Option {
-	return func(o *options) {
-		o.autoHttp = h
-	}
-}
-
-// WithLoggingDecider
+// WithLoggingDecider Decider how log output.
 func WithLoggingDecider(decider logging.Decider) Option {
 	return func(o *options) {
 		if decider != nil {
 			o.loggingDecider = decider
 		}
+	}
+}
+
+// WithLimiter performs rate limiting on the request.
+func WithLimiter(l *limit.Limiter) Option {
+	return func(o *options) {
+		o.limiter = l
 	}
 }
 
@@ -228,6 +231,14 @@ func fullOptions(logger *zap.Logger,
 		),
 		validator.StreamServerInterceptor(false),
 		interceptor.TracerServerStreamInterceptor(opt.tracer),
+	}
+	// limiter
+	if opt.limiter != nil {
+		opt.muxOptions = append(opt.muxOptions, mux.WithLimiter(opt.limiter))
+		unaryServerInterceptors = append(unaryServerInterceptors,
+			limit.UnaryServerInterceptor(opt.limiter))
+		streamServerInterceptors = append(streamServerInterceptors,
+			limit.StreamServerInterceptor(opt.limiter))
 	}
 	// if opt.tracer != nil {
 	// 	unaryServerInterceptors = append(unaryServerInterceptors,

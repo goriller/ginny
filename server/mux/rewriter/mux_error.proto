@@ -1,7 +1,7 @@
 syntax = "proto3";
 package mux;
 
-option go_package = "git.woa.com/weida/runtime/server/mux;mux";
+option go_package = "git.woa.com/weida/runtime/server/mux/rewriter;rewriter";
 
 // Error is the generic error returned from unary RPCs.
 message MuxError {

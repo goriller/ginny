@@ -1,4 +1,4 @@
-package mux
+package middleware
 
 import (
 	"fmt"
@@ -6,10 +6,10 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/goriller/ginny/interceptor/logging"
-	"github.com/goriller/ginny/middleware"
+	"github.com/goriller/ginny/server/mux/rewriter"
 	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -23,16 +23,19 @@ func DisableRecover() {
 }
 
 // RecoverMiddleWare revover add logger
-func RecoverMiddleWare(logger grpc_logging.Logger) middleware.MuxMiddleware {
+func RecoverMiddleWare(logger grpc_logging.Logger, bodyMarshaler,
+	errorMarshaler runtime.Marshaler, withoutHTTPStatus bool) MuxMiddleware {
 	return func(h http.Handler) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			start := time.Now()
 			// writer
-			writer := &responseWriter{
-				w:                 w,
-				header:            200,
-				withoutHTTPStatus: defaultMuxOption.withoutHTTPStatus,
-				s:                 status.New(codes.OK, "success"),
+			writer := &rewriter.ResponseWriter{
+				Writer:            w,
+				HeaderStatus:      200,
+				WithoutHTTPStatus: withoutHTTPStatus,
+				Status:            status.New(codes.OK, "success"),
+				BodyWriter: rewriter.DefaultBodyWriter(bodyMarshaler, errorMarshaler,
+					withoutHTTPStatus),
 			}
 			ctx := tags.SetInContext(r.Context(), tags.NewTags())
 			r = r.WithContext(ctx)
@@ -42,7 +45,7 @@ func RecoverMiddleWare(logger grpc_logging.Logger) middleware.MuxMiddleware {
 						stack := zap.StackSkip("", 2).String
 						tags.Extract(r.Context()).Set("stacktrace", stack)
 						err := status.Errorf(codes.Internal, "%s", rec)
-						WriteHTTPErrorResponse(wt, req, err)
+						rewriter.WriteHTTPErrorResponse(wt, req, err)
 						withLogger(start, logger, req, wt)
 					}
 				}
@@ -57,7 +60,7 @@ func RecoverMiddleWare(logger grpc_logging.Logger) middleware.MuxMiddleware {
 			h.ServeHTTP(writer, r)
 
 			// logger
-			withLogger(start, logger, r, w)
+			withLogger(start, logger, r, writer)
 		}
 	}
 }
@@ -68,7 +71,7 @@ func withLogger(start time.Time, logger grpc_logging.Logger, r *http.Request, w 
 		return
 	}
 	fields := getLoggingFields(start, r, w)
-	status := w.Header().Get(logging.ResponseStatusHeader)
+	status := w.Header().Get(ResponseStatusHeader)
 	level := getLevel(status, w)
 	if status != "" {
 		fields = append(fields, "status", status)
@@ -89,7 +92,7 @@ func getLoggingFields(start time.Time,
 	fields = append(fields, "method", r.Method)
 	fields = append(fields, "protocol", r.Proto)
 	fields = append(fields, "referer", r.Header.Get("referer"))
-	fields = append(fields, "device_id", r.Header.Get(logging.DeviceIDHeader))
+	fields = append(fields, "device_id", r.Header.Get(DeviceIDHeader))
 	used := float32(time.Since(start)) / float32(time.Millisecond)
 	fields = append(fields, "time_ms", fmt.Sprintf("%3f", used))
 	return fields

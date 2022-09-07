@@ -76,7 +76,6 @@ func NewApp(
 	}
 	if option.HttpAddr != "" {
 		opts = append(opts,
-			server.WithHttp(true),
 			server.WithHttpAddr(option.HttpAddr),
 		)
 	}

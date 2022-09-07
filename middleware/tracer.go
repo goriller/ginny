@@ -6,7 +6,6 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/goriller/ginny-util/ip"
-	"github.com/goriller/ginny/interceptor/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
@@ -26,8 +25,8 @@ func TracerMiddleWare(t opentracing.Tracer) MuxMiddleware {
 				return
 			}
 
-			r.Header.Set(logging.PathHeader, r.URL.Path)
-			r.Header.Set(logging.MethodHeader, r.Method)
+			r.Header.Set(PathHeader, r.URL.Path)
+			r.Header.Set(MethodHeader, r.Method)
 			r.Header.Set("host", r.Host)
 			// 注入IP地址
 			_ = ip.GetIPFromHTTPRequest(r)
@@ -62,7 +61,7 @@ func TracerMiddleWare(t opentracing.Tracer) MuxMiddleware {
 func ChainHeader(w http.ResponseWriter, r *http.Request) context.Context {
 	var (
 		reqId     string
-		otHeaders = logging.HeaderMap
+		otHeaders = HeaderMap
 	)
 	ctx := r.Context()
 	preTags := tags.Extract(ctx)
@@ -70,17 +69,17 @@ func ChainHeader(w http.ResponseWriter, r *http.Request) context.Context {
 	for k, v := range otHeaders {
 		val := r.Header.Get(k)
 		if len(val) > 0 {
-			if v == logging.RequestId {
+			if v == RequestId {
 				reqId = val
 			}
 			preTags.Set(v, val)
 		}
 	}
-	if !preTags.Has(logging.RequestId) || reqId == "" {
+	if !preTags.Has(RequestId) || reqId == "" {
 		reqId = uuid.New().String()
 	}
-	preTags.Set(logging.RequestId, reqId)
-	w.Header().Set(logging.RequestIDHeader, reqId)
+	preTags.Set(RequestId, reqId)
+	w.Header().Set(RequestIDHeader, reqId)
 	context := tags.SetInContext(ctx, preTags)
 	return context
 }

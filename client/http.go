@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goriller/ginny/interceptor/logging"
+	"github.com/goriller/ginny/middleware"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 	"go.uber.org/zap"
@@ -221,7 +221,7 @@ func (c *Client) onRequestClose(ctx context.Context,
 		log := c.options.logger.With(
 			zap.String("action", path),
 			zap.String("host", c.options.target),
-			zap.String(logging.RequestId, header.Get(RequestIDHeader)),
+			zap.String(middleware.RequestId, header.Get(RequestIDHeader)),
 			zap.Int("status", statusCode),
 			zap.Int("referer", tryTimes),
 			zap.String("protocol", "http/client"),

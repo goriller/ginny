@@ -25,9 +25,9 @@ func NewMuxServe(logger *zap.Logger, opts ...Optional) *MuxServe {
 	}
 	mux.serveMux = runtime.NewServeMux(o.runTimeOpts...)
 
-	// middleWares
+	// default middleWares
 	var middlewares = []middleware.MuxMiddleware{
-		RecoverMiddleWare(o.logger),
+		middleware.RecoverMiddleWare(o.logger, o.bodyMarshaler, o.errorMarshaler, o.withoutHTTPStatus),
 		middleware.TracerMiddleWare(o.tracer),
 		health.HealthMiddleware,
 	}
@@ -35,7 +35,6 @@ func NewMuxServe(logger *zap.Logger, opts ...Optional) *MuxServe {
 		middlewares = append(middlewares, o.middleWares...)
 	}
 	mux.handler = handlerWithMiddleWares(mux.serveMux, middlewares...)
-
 	return mux
 }
 

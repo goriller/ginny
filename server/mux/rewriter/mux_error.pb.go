@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.27.1
 // 	protoc        v3.19.1
-// source: server/mux/mux_error.proto
+// source: server/mux/rewriter/mux_error.proto
 
-package mux
+package rewriter
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"

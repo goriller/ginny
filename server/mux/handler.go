@@ -8,11 +8,10 @@ import (
 	"net/http"
 	"net/textproto"
 	reflect "reflect"
-	"strconv"
 	"strings"
 
 	"github.com/goriller/ginny/middleware"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
+	"github.com/goriller/ginny/server/mux/rewriter"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"google.golang.org/genproto/googleapis/api/httpbody"
@@ -23,94 +22,6 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 )
-
-const (
-	statusOKPrefix         = 2
-	statusBadRequestPrefix = 4
-	fallback               = `{"code": %d,"message":"%s"}`
-)
-
-// codesErrors some errors string for grpc codes
-var codesErrors = map[codes.Code]string{
-	codes.OK:                 "ok",
-	codes.Canceled:           "canceled",
-	codes.Unknown:            "unknown",
-	codes.InvalidArgument:    "invalid_argument",
-	codes.DeadlineExceeded:   "deadline_exceeded",
-	codes.NotFound:           "not_found",
-	codes.AlreadyExists:      "already_exists",
-	codes.PermissionDenied:   "permission_denied",
-	codes.ResourceExhausted:  "resource_exhausted",
-	codes.FailedPrecondition: "failed_precondition",
-	codes.Aborted:            "aborted",
-	codes.OutOfRange:         "out_of_range",
-	codes.Unimplemented:      "unimplemented",
-	codes.Internal:           "internal",
-	codes.Unavailable:        "unavailable",
-	codes.DataLoss:           "data_loss",
-	codes.Unauthenticated:    "unauthenticated",
-}
-
-// RegisterErrorCodes set custom error codes for DefaultHTTPError
-// for exp: server.RegisterErrorCodes(pb.ErrorCode_name)
-// SetCustomErrorCodes set custom error codes for DefaultHTTPError
-// the map[int32]string is compact to protobuf's ENMU_name
-// 2*** HTTP status 200
-// 4*** HTTP status 400
-// 5*** AND other HTTP status 500
-// For exp:
-// in proto
-// enum CommonError {
-//	captcha_required = 4001;
-//	invalid_captcha = 4002;
-// }
-// in code
-// server.RegisterErrorCodes(common.CommonError_name)
-func RegisterErrorCodes(codeErrors map[int32]string) {
-	for code, errorMsg := range codeErrors {
-		codesErrors[codes.Code(code)] = errorMsg
-	}
-}
-
-// httpStatusCode the 2xxx is 200, the 4xxx is 400, the 5xxx is 500
-func httpStatusCode(code codes.Code) (httpStatusCode int) {
-	// http status codes can be error codes
-	if code >= 200 && code < 599 {
-		return int(code)
-	}
-	for code >= 10 {
-		code /= 10
-	}
-	switch code {
-	case statusOKPrefix:
-		httpStatusCode = http.StatusOK
-	case statusBadRequestPrefix:
-		httpStatusCode = http.StatusBadRequest
-	default:
-		httpStatusCode = http.StatusInternalServerError
-	}
-	return
-}
-
-// CodeToError
-func CodeToError(c codes.Code) string {
-	errStr, ok := codesErrors[c]
-	if ok {
-		return errStr
-	}
-	return strconv.FormatInt(int64(c), 10)
-}
-
-// CodeToStatus
-func CodeToStatus(code codes.Code) int {
-	st := int(code)
-	if st > 100 {
-		st = httpStatusCode(code)
-	} else {
-		st = runtime.HTTPStatusFromCode(code)
-	}
-	return st
-}
 
 func defaultErrorHandler(ctx context.Context,
 	mux *runtime.ServeMux, marshaler runtime.Marshaler,
@@ -135,7 +46,7 @@ func defaultErrorHandler(ctx context.Context,
 		handleForwardResponseTrailer(w, md)
 	}
 
-	WriteHTTPErrorResponse(w, r, err)
+	rewriter.WriteHTTPErrorResponse(w, r, err)
 }
 
 func handleForwardResponseTrailerHeader(w http.ResponseWriter, md runtime.ServerMetadata) {
@@ -152,26 +63,6 @@ func handleForwardResponseTrailer(w http.ResponseWriter, md runtime.ServerMetada
 			w.Header().Add(tKey, v)
 		}
 	}
-}
-
-// WriteHTTPErrorResponse  set HTTP status code and write error description to the body.
-func WriteHTTPErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
-	s, ok := status.FromError(err)
-	if !ok {
-		s = status.New(codes.Unknown, err.Error())
-	}
-	w.Header().Set("Content-Type", "application/json")
-	preTags := tags.Extract(r.Context())
-	preTags.Set("code", strconv.Itoa(int(s.Code())))
-	preTags.Set("message", s.Message())
-
-	if wt, ok := w.(*responseWriter); ok {
-		wt.s = s
-		wt.WriteHeader(CodeToStatus(s.Code()))
-		_, _ = wt.Write(nil)
-		return
-	}
-	fallbackFunc(w, s.Code(), s.Message())
 }
 
 // handlerWithMiddleWares handler with middle wares.
