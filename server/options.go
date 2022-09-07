@@ -31,12 +31,13 @@ type options struct {
 	discover Discover
 	tracer   opentracing.Tracer
 
-	muxOptions                 []mux.Optional
+	authFunc                   interceptor.Authorize
 	logger                     grpc_logging.Logger
 	loggingDecider             logging.Decider
 	limiter                    *limit.Limiter
 	grpcServerOpts             []grpc.ServerOption
 	withOutKeepAliveOpts       bool
+	muxOptions                 []mux.Optional
 	streamServerInterceptors   []grpc.StreamServerInterceptor
 	unaryServerInterceptors    []grpc.UnaryServerInterceptor
 	requestFieldExtractorFunc  logging.RequestFieldExtractorFunc
@@ -129,6 +130,13 @@ func WithLoggingDecider(decider logging.Decider) Option {
 func WithLimiter(l *limit.Limiter) Option {
 	return func(o *options) {
 		o.limiter = l
+	}
+}
+
+// WithAuthFunc
+func WithAuthFunc(a interceptor.Authorize) Option {
+	return func(o *options) {
+		o.authFunc = a
 	}
 }
 
@@ -239,6 +247,15 @@ func fullOptions(logger *zap.Logger,
 			limit.UnaryServerInterceptor(opt.limiter))
 		streamServerInterceptors = append(streamServerInterceptors,
 			limit.StreamServerInterceptor(opt.limiter))
+	}
+
+	// auth
+	if opt.authFunc != nil {
+		opt.muxOptions = append(opt.muxOptions, mux.WithAuthFunc(opt.authFunc))
+		unaryServerInterceptors = append(unaryServerInterceptors,
+			interceptor.AuthUnaryServerInterceptor(opt.authFunc))
+		streamServerInterceptors = append(streamServerInterceptors,
+			interceptor.AuthStreamServerInterceptor(opt.authFunc))
 	}
 	// if opt.tracer != nil {
 	// 	unaryServerInterceptors = append(unaryServerInterceptors,

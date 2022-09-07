@@ -3,6 +3,7 @@ package mux
 import (
 	"strings"
 
+	"github.com/goriller/ginny/interceptor"
 	"github.com/goriller/ginny/interceptor/limit"
 	"github.com/goriller/ginny/middleware"
 	"github.com/goriller/ginny/server/mux/rewriter"
@@ -16,6 +17,7 @@ import (
 
 // MuxOption
 type MuxOption struct {
+	authFunc          interceptor.Authorize
 	logger            logging.Logger
 	tracer            opentracing.Tracer
 	limiter           *limit.Limiter
@@ -127,6 +129,13 @@ func WithLimiter(l *limit.Limiter) Optional {
 	}
 }
 
+// WithAuthFunc
+func WithAuthFunc(a interceptor.Authorize) Optional {
+	return func(o *MuxOption) {
+		o.authFunc = a
+	}
+}
+
 // WithMiddleWares pluggable function that performs middle wares.
 func WithMiddleWares(middleWares ...middleware.MuxMiddleware) Optional {
 	return func(o *MuxOption) {
@@ -152,6 +161,12 @@ func fullOptions(logger *zap.Logger,
 	if o.limiter != nil {
 		o.middleWares = append(o.middleWares,
 			middleware.LimitMiddleWare(o.limiter))
+	}
+
+	// auth
+	if o.authFunc != nil {
+		o.middleWares = append(o.middleWares,
+			middleware.AuthMiddleWare(o.authFunc))
 	}
 
 	runtimeOpt := []runtime.ServeMuxOption{

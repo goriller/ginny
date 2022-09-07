@@ -21,6 +21,11 @@ func LimitMiddleWare(limiter *limit.Limiter) MuxMiddleware {
 				h.ServeHTTP(w, r)
 				return
 			}
+			if r.URL.Path == "/healthz" {
+				// next
+				h.ServeHTTP(w, r)
+				return
+			}
 
 			ctx := r.Context()
 			var lv *limit.LimitValue
