@@ -14,10 +14,10 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.11.3
 	github.com/opentracing/opentracing-go v1.2.0
 	github.com/pkg/errors v0.9.1
-	github.com/spf13/viper v1.12.0
-	go.uber.org/zap v1.22.0
-	golang.org/x/net v0.0.0-20220822230855-b0a4917ee28c
-	google.golang.org/genproto v0.0.0-20220822174746-9e6da59bd2fc
+	github.com/spf13/viper v1.13.0
+	go.uber.org/zap v1.23.0
+	golang.org/x/net v0.0.0-20220907135653-1e95f45603a7
+	google.golang.org/genproto v0.0.0-20220902135211-223410557253
 	google.golang.org/grpc v1.49.0
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/natefinch/lumberjack.v2 v2.0.0
