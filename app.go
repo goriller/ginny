@@ -2,6 +2,7 @@ package ginny
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/wire"
 	"github.com/goriller/ginny/config"
@@ -19,7 +20,19 @@ var (
 		config.ConfigProviderSet,
 		NewOption, NewApp,
 	)
+	Logo = `
+
+	┌─┐┬┌┐┌┌┐┌┬ ┬
+	│ ┬│││││││└┬┘
+	└─┘┴┘└┘┘└┘ ┴ 
+	https://github.com/goriller/ginny
+	
+	`
 )
+
+func init() {
+	fmt.Printf("\x1b[35;1m%s\x1b[0m\n", Logo)
+}
 
 // RegistrarFunc
 type RegistrarFunc func(app *Application) error
