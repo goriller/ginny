@@ -44,9 +44,11 @@ type GrpcClientOptions struct {
 type GrpcClientOptional func(o *GrpcClientOptions)
 
 // WithTimeout
-func WithTimeout(d time.Duration) GrpcClientOptional {
+func WithTimeout(t time.Duration) GrpcClientOptional {
 	return func(o *GrpcClientOptions) {
-		o.timeout = d
+		if t > 0 {
+			o.timeout = t
+		}
 	}
 }
 

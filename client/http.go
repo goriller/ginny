@@ -53,14 +53,18 @@ type ClientOptional func(o *ClientOptions)
 // WithReqestTimeout
 func WithReqestTimeout(t time.Duration) ClientOptional {
 	return func(opt *ClientOptions) {
-		opt.timeout = t
+		if t > 0 {
+			opt.timeout = t
+		}
 	}
 }
 
 // WithRetryTimes 设置失败重试
 func WithRetryTimes(retryTimes int) ClientOptional {
 	return func(opt *ClientOptions) {
-		opt.retryTimes = retryTimes
+		if retryTimes > 0 {
+			opt.retryTimes = retryTimes
+		}
 	}
 }
 
