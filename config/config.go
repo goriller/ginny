@@ -12,6 +12,7 @@ import (
 	"github.com/google/wire"
 	"github.com/goriller/ginny/logger"
 	"github.com/spf13/viper"
+	_ "github.com/spf13/viper/remote"
 )
 
 var (
@@ -70,8 +71,11 @@ func loadConfig(v *viper.Viper) error {
 	logger.Default().Info("Loading config...")
 	// load config from remote
 	p := os.Getenv("REMOTE_CONFIG")
-	if p != "" || remoteConfig != "" {
-		return loadConfigFromRemote(v, p)
+	if remoteConfig == "" {
+		remoteConfig = p
+	}
+	if remoteConfig != "" {
+		return loadConfigFromRemote(v, remoteConfig)
 	}
 	data, err := ioutil.ReadFile(v.ConfigFileUsed())
 	if err != nil {
