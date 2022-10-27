@@ -7,12 +7,11 @@ import (
 	"github.com/goriller/ginny/interceptor"
 	"github.com/goriller/ginny/interceptor/limit"
 	"github.com/goriller/ginny/interceptor/logging"
+	"github.com/goriller/ginny/interceptor/tags"
 	"github.com/goriller/ginny/server/mux"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
 	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tracing"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/validator"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
 	"github.com/opentracing/opentracing-go"
@@ -231,7 +230,6 @@ func fullOptions(logger *zap.Logger,
 
 	streamServerInterceptors := []grpc.StreamServerInterceptor{
 		tags.StreamServerInterceptor(),
-		tracing.StreamServerInterceptor(),
 		grpc_prometheus.StreamServerInterceptor,
 		logging.StreamServerInterceptor(
 			opt.logger,
@@ -257,17 +255,6 @@ func fullOptions(logger *zap.Logger,
 		streamServerInterceptors = append(streamServerInterceptors,
 			interceptor.AuthStreamServerInterceptor(opt.authFunc))
 	}
-	// if opt.tracer != nil {
-	// 	unaryServerInterceptors = append(unaryServerInterceptors,
-	// 		tracing.UnaryServerInterceptor(tracing.WithTracer(opt.tracer)))
-	// 	streamServerInterceptors = append(streamServerInterceptors,
-	// 		tracing.StreamServerInterceptor(tracing.WithTracer(opt.tracer)))
-	// } else {
-	// 	unaryServerInterceptors = append(unaryServerInterceptors,
-	// 		tracing.UnaryServerInterceptor(tracing.WithTracer(opentracing.GlobalTracer())))
-	// 	streamServerInterceptors = append(streamServerInterceptors,
-	// 		tracing.StreamServerInterceptor(tracing.WithTracer(opentracing.GlobalTracer())))
-	// }
 
 	if len(opt.unaryServerInterceptors) > 0 {
 		unaryServerInterceptors = append(unaryServerInterceptors, opt.unaryServerInterceptors...)

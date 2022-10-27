@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/goriller/ginny/interceptor/tags"
 	"github.com/goriller/ginny/server/mux/rewriter"
 	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"

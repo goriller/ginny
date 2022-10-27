@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/goriller/ginny/interceptor/limit"
+	"github.com/goriller/ginny/interceptor/tags"
 	"github.com/goriller/ginny/server/mux/rewriter"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

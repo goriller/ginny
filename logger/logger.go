@@ -3,7 +3,7 @@ package logger
 import (
 	"context"
 
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
+	"github.com/goriller/ginny/interceptor/tags"
 	"go.uber.org/zap"
 )
 

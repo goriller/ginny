@@ -9,9 +9,9 @@ import (
 	"strings"
 	"time"
 
+	"github.com/goriller/ginny/interceptor/tags"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -61,7 +61,7 @@ func commonFields(ctx context.Context, kind, service, method string, typ interce
 
 // PostCall implement
 func (c *reporter) PostCall(err error, duration time.Duration) {
-	switch shouldLog(c.opts.shouldLog, interceptors.FullMethod(c.service, c.method), err).Enable {
+	switch shouldLog(c.opts.shouldLog, FullMethod(c.service, c.method), err).Enable {
 	case logging.LogFinishCall, logging.LogStartAndFinishCall:
 		if errors.Is(err, io.EOF) {
 			err = nil
@@ -77,13 +77,13 @@ func (c *reporter) PostMsgSend(resp interface{}, err error, duration time.Durati
 	if c.startCallLogged {
 		return
 	}
-	payloadDecision := shouldLog(c.opts.shouldLog, interceptors.FullMethod(c.service, c.method), err)
+	payloadDecision := shouldLog(c.opts.shouldLog, FullMethod(c.service, c.method), err)
 	if err == nil {
 		if payloadDecision.Response {
 			c.logger = c.logger.With("response_"+keyContent, bodyString(resp, payloadDecision.ClearBytes))
 		}
 		if c.opts.responseFieldExtractorFunc != nil {
-			data := c.opts.responseFieldExtractorFunc(interceptors.FullMethod(c.service, c.method), resp)
+			data := c.opts.responseFieldExtractorFunc(FullMethod(c.service, c.method), resp)
 			c.logger = c.logger.With(extractMap(data, "response_", payloadDecision.Response)...)
 		}
 	}
@@ -120,20 +120,24 @@ func shouldLog(decider Decider, fullMethod string, err error) PayloadDecision {
 	return decider(fullMethod, err)
 }
 
+func FullMethod(service, method string) string {
+	return fmt.Sprintf("/%s/%s", service, method)
+}
+
 // PostMsgReceive implement
 func (c *reporter) PostMsgReceive(req interface{}, err error, duration time.Duration) {
 	if c.startCallLogged {
 		return
 	}
 	if c.opts.requestFieldExtractorFunc != nil {
-		if valMap := c.opts.requestFieldExtractorFunc(interceptors.FullMethod(c.service, c.method), req); valMap != nil {
+		if valMap := c.opts.requestFieldExtractorFunc(FullMethod(c.service, c.method), req); valMap != nil {
 			t := tags.Extract(c.ctx)
 			for k, v := range valMap {
 				t.Set("request."+k, v)
 			}
 		}
 	}
-	payloadDecision := shouldLog(c.opts.shouldLog, interceptors.FullMethod(c.service, c.method), err)
+	payloadDecision := shouldLog(c.opts.shouldLog, FullMethod(c.service, c.method), err)
 	if payloadDecision.Request && err == nil {
 		c.logger = c.logger.With(keyRequestContent, bodyString(req, payloadDecision.ClearBytes))
 	}

@@ -25,8 +25,6 @@ func StreamClientInterceptor(logger logging.Logger, opts ...Option) grpc.StreamC
 }
 
 // ClientReporter the client reporter
-func (r *reportable) ClientReporter(ctx context.Context, _ interface{}, typ interceptors.GRPCType, service string,
-	method string,
-) (interceptors.Reporter, context.Context) {
-	return r.reporter(ctx, typ, service, method, logging.KindClientFieldValue)
+func (r *reportable) ClientReporter(ctx context.Context, meta interceptors.CallMeta) (interceptors.Reporter, context.Context) {
+	return r.reporter(ctx, meta.Typ, meta.Service, meta.Method, logging.KindClientFieldValue)
 }

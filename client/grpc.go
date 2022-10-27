@@ -200,18 +200,6 @@ func newGrpcClientConn(ctx context.Context, opt *GrpcClientOptions) (*grpc.Clien
 
 	if opt.tracer != nil {
 		opt.grpcDialOptions = append(opt.grpcDialOptions,
-			// grpc.WithChainUnaryInterceptor(
-			// 	tracing.UnaryClientInterceptor(
-			// 		tracing.WithTracer(opt.tracer),
-			// 		tracing.WithTraceHeaderName(logging.RequestIDHeader),
-			// 	),
-			// ),
-			// grpc.WithChainStreamInterceptor(
-			// 	tracing.StreamClientInterceptor(
-			// 		tracing.WithTracer(opt.tracer),
-			// 		tracing.WithTraceHeaderName(logging.RequestIDHeader),
-			// 	),
-			// ),
 			grpc.WithChainUnaryInterceptor(
 				interceptor.TracerUnaryClientInterceptor(opt.tracer),
 			),
@@ -221,18 +209,6 @@ func newGrpcClientConn(ctx context.Context, opt *GrpcClientOptions) (*grpc.Clien
 		)
 	} else {
 		opt.grpcDialOptions = append(opt.grpcDialOptions,
-			// grpc.WithChainUnaryInterceptor(
-			// 	tracing.UnaryClientInterceptor(
-			// 		tracing.WithTracer(opentracing.GlobalTracer()),
-			// 		tracing.WithTraceHeaderName(logging.RequestIDHeader),
-			// 	),
-			// ),
-			// grpc.WithChainStreamInterceptor(
-			// 	tracing.StreamClientInterceptor(
-			// 		tracing.WithTracer(opentracing.GlobalTracer()),
-			// 		tracing.WithTraceHeaderName(logging.RequestIDHeader),
-			// 	),
-			// ),
 			grpc.WithChainUnaryInterceptor(
 				interceptor.TracerUnaryClientInterceptor(opentracing.GlobalTracer()),
 			),

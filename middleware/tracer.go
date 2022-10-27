@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/goriller/ginny-util/ip"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
+	"github.com/goriller/ginny/interceptor/tags"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
 )

@@ -4,9 +4,9 @@ import (
 	"context"
 	"net"
 
+	"github.com/goriller/ginny/interceptor/tags"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/peer"
 )
@@ -26,11 +26,9 @@ func StreamServerInterceptor(logger logging.Logger, opts ...Option) grpc.StreamS
 }
 
 // ServerReporter implement the ServerReporter.
-func (r *reportable) ServerReporter(ctx context.Context, _ interface{}, typ interceptors.GRPCType,
-	service string, method string,
-) (interceptors.Reporter, context.Context) {
+func (r *reportable) ServerReporter(ctx context.Context, meta interceptors.CallMeta) (interceptors.Reporter, context.Context) {
 	newCtx := newTagsForCtx(ctx)
-	return r.reporter(newCtx, typ, service, method, logging.KindServerFieldValue)
+	return r.reporter(newCtx, meta.Typ, meta.Service, meta.Method, logging.KindServerFieldValue)
 }
 
 func newTagsForCtx(ctx context.Context) context.Context {

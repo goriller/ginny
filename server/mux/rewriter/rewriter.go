@@ -7,7 +7,7 @@ import (
 	"strconv"
 
 	"github.com/goriller/ginny/errs"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/tags"
+	"github.com/goriller/ginny/interceptor/tags"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/grpclog"
