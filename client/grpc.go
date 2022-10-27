@@ -193,8 +193,9 @@ func newGrpcClientConn(ctx context.Context, opt *GrpcClientOptions) (*grpc.Clien
 		grpc.WithChainUnaryInterceptor(unaryInterceptor...),
 		grpc.WithChainStreamInterceptor(streamInterceptor...),
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{
-			Time:    time.Minute,
-			Timeout: time.Second * 30,
+			Time:                1 * time.Second,        // send pings every 1 seconds if there is no activity
+			Timeout:             500 * time.Millisecond, // wait 500 millisecond for ping ack before considering the connection dead
+			PermitWithoutStream: true,                   // send pings even without active streams
 		}),
 	)
 
