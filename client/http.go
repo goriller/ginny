@@ -326,8 +326,10 @@ func parseOptions(ctx context.Context, u *url.URL, options ...ClientOptional) (*
 	if u.Scheme == "http" || u.Scheme == "https" {
 		o.target = u.String()
 	}
+
+	tag := query.Get("tag")
 	if o.resolver != nil {
-		addr, err := o.resolver(ctx, u.String(), "http")
+		addr, err := o.resolver(ctx, u.String(), tag)
 		if err != nil {
 			return nil, err
 		}

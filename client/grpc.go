@@ -30,7 +30,7 @@ import (
 type GrpcClientOptions struct {
 	target          string // ip+port/serviceName
 	timeout         time.Duration
-	retry           int
+	retryTimes      int
 	loadBalance     string
 	secure          bool
 	metrics         bool
@@ -161,9 +161,9 @@ func newGrpcClientConn(ctx context.Context, opt *GrpcClientOptions) (*grpc.Clien
 			timeout.TimeoutUnaryClientInterceptor(opt.timeout))
 	}
 	// retry
-	if opt.retry > 0 {
+	if opt.retryTimes > 0 {
 		retryOpts := []grpc_retry.CallOption{
-			grpc_retry.WithMax(uint(opt.retry)),
+			grpc_retry.WithMax(uint(opt.retryTimes)),
 			grpc_retry.WithCodes(codes.Unavailable),
 			grpc_retry.WithBackoff(func(_ uint) time.Duration {
 				return time.Second
@@ -244,8 +244,10 @@ func evaluateOptions(ctx context.Context, u *url.URL, opts []GrpcClientOptional)
 		opt.loadBalance = roundrobin.Name
 	}
 	query := u.Query()
-	try, _ := strconv.Atoi(query.Get("retry"))
-	opt.retry = try
+	if try, err := strconv.Atoi(query.Get("retry")); err == nil {
+		opt.retryTimes = try
+	}
+
 	falseStr := "false"
 	opt.secure = query.Get("secure") != falseStr
 	opt.metrics = query.Get("metrics") != falseStr
@@ -253,9 +255,10 @@ func evaluateOptions(ctx context.Context, u *url.URL, opts []GrpcClientOptional)
 	if u.Scheme == "grpc" || u.Scheme == "http" {
 		opt.target = u.Host
 	}
+	tag := query.Get("tag")
 
 	if opt.resolver != nil {
-		addr, err := opt.resolver(ctx, u.String(), "grpc")
+		addr, err := opt.resolver(ctx, u.String(), tag)
 		if err != nil {
 			return nil, err
 		}
