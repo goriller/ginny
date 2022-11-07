@@ -47,8 +47,8 @@ type options struct {
 
 // Discover service discovery
 type Discover interface {
-	ServiceRegister(name, addr string, tags []string, meta map[string]string) error
-	ServiceDeregister(name string) error
+	ServiceRegister(ctx context.Context, name, addr string, tags []string, meta map[string]string) error
+	ServiceDeregister(ctx context.Context, name string) error
 }
 
 var defaultOptions = &options{

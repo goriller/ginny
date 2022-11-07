@@ -80,7 +80,6 @@ func NewApp(
 		Name:    option.Name,
 		Version: option.Version,
 		Option:  option,
-		Ctx:     ctx,
 		regFunc: regFunc,
 		Logger:  logger.With(zap.String("action", "App")),
 	}
@@ -94,16 +93,16 @@ func NewApp(
 	}
 
 	opts = append(opts, opt...)
-	app.Server = server.NewServer(logger, opts...)
+	app.Server = server.NewServer(ctx, logger, opts...)
 	return app, nil
 }
 
 // Start
-func (a *Application) Start() error {
+func (a *Application) Start(ctx context.Context) error {
 	if err := a.regFunc(a); err != nil {
 		return err
 	}
-	a.Server.Start()
+	a.Server.Start(ctx)
 	return nil
 }
 

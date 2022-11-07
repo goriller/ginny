@@ -37,7 +37,7 @@ type Server struct {
 }
 
 // NewServer new grpc server with all common middleware.
-func NewServer(logger *zap.Logger, opts ...Option) *Server {
+func NewServer(ctx context.Context, logger *zap.Logger, opts ...Option) *Server {
 	opt := fullOptions(logger, opts...)
 
 	svc := &Server{
@@ -56,21 +56,27 @@ func NewServer(logger *zap.Logger, opts ...Option) *Server {
 }
 
 // Start
-func (s *Server) Start() {
+func (s *Server) Start(ctx context.Context) {
 	graceful.AddCloser(s.Close)
-	fns := []graceful.Fn{s.startGRPC}
+	fns := []graceful.Fn{func() error {
+		return s.startGRPC(ctx)
+	}}
 	if s.options.httpAddr != "" {
-		fns = append(fns, s.startHTTP)
+		fns = append(fns, func() error {
+			return s.startHTTP(ctx)
+		})
 	}
 	if s.options.discover != nil {
-		fns = append(fns, s.register)
+		fns = append(fns, func() error {
+			return s.register(ctx)
+		})
 	}
 
 	graceful.Start(fns...)
 }
 
 // startGRPC
-func (s *Server) startGRPC() error {
+func (s *Server) startGRPC(ctx context.Context) error {
 	lis, err := net.Listen("tcp", s.options.grpcAddr)
 	if err != nil {
 		s.options.logger.Log(logging.ERROR, "listen grpc "+s.options.grpcAddr+" error for "+err.Error())
@@ -86,7 +92,7 @@ func (s *Server) startGRPC() error {
 }
 
 // startHTTP
-func (s *Server) startHTTP() error {
+func (s *Server) startHTTP(ctx context.Context) error {
 	if s.httpServer == nil {
 		return nil
 	}
@@ -101,7 +107,7 @@ func (s *Server) startHTTP() error {
 }
 
 // RegisterService registering gRPC service
-func (s *Server) RegisterService(desc *grpc.ServiceDesc, serviceImpl interface{}) {
+func (s *Server) RegisterService(ctx context.Context, desc *grpc.ServiceDesc, serviceImpl interface{}) {
 	s.grpcServer.RegisterService(desc, serviceImpl)
 	// // auto bind http handler
 	// if s.options.autoHttp {
@@ -124,7 +130,7 @@ func (s *Server) Close(ctx context.Context) error {
 		s.healthServer.Close()
 	}
 	// deRegister
-	err := s.deRegister()
+	err := s.deRegister(ctx)
 	if err != nil {
 		s.logger.Log(logging.WARNING, "deregister service failed: "+err.Error())
 	}
@@ -160,7 +166,7 @@ func (s *Server) ServeMux() *runtime.ServeMux {
 }
 
 // register registering to service discovery
-func (s *Server) register() error {
+func (s *Server) register(ctx context.Context) error {
 	if s.options.discover == nil {
 		return nil
 	}
@@ -180,7 +186,7 @@ func (s *Server) register() error {
 	for key := range s.grpcServer.GetServiceInfo() {
 		// gRPC
 		name := fmt.Sprintf("%s[%s]", key, "grpc")
-		err := s.options.discover.ServiceRegister(name, fmt.Sprintf("%s:%s", host, u.Port()), s.options.tags, nil)
+		err := s.options.discover.ServiceRegister(ctx, name, fmt.Sprintf("%s:%s", host, u.Port()), s.options.tags, nil)
 		if err != nil {
 			return errors.Wrap(err, "register grpc service error")
 		}
@@ -189,7 +195,7 @@ func (s *Server) register() error {
 		// HTTP
 		if s.options.httpAddr != "" {
 			hName := fmt.Sprintf("%s[%s]", key, "http")
-			err = s.options.discover.ServiceRegister(hName, fmt.Sprintf("%s:%s", host, u.Port()), s.options.tags, nil)
+			err = s.options.discover.ServiceRegister(ctx, hName, fmt.Sprintf("%s:%s", host, u.Port()), s.options.tags, nil)
 			if err != nil {
 				return errors.Wrap(err, "register http service error")
 			}
@@ -201,7 +207,7 @@ func (s *Server) register() error {
 }
 
 // deRegister deregistering from service discovery
-func (s *Server) deRegister() error {
+func (s *Server) deRegister(ctx context.Context) error {
 	if s.options.discover == nil {
 		return nil
 	}
@@ -209,7 +215,7 @@ func (s *Server) deRegister() error {
 	for key := range s.grpcServer.GetServiceInfo() {
 		// gRPC
 		name := fmt.Sprintf("%s[%s/%s]", "http", s.options.grpcAddr, key)
-		err := s.options.discover.ServiceDeregister(name)
+		err := s.options.discover.ServiceDeregister(ctx, name)
 		if err != nil {
 			return errors.Wrapf(err, "deregister service error[id=%s]", name)
 		}
@@ -218,7 +224,7 @@ func (s *Server) deRegister() error {
 		// HTTP
 		if s.options.httpAddr != "" {
 			hName := fmt.Sprintf("%s[%s]", key, "http")
-			err = s.options.discover.ServiceDeregister(hName)
+			err = s.options.discover.ServiceDeregister(ctx, hName)
 			if err != nil {
 				return errors.Wrapf(err, "deregister http server error[id=%s]", hName)
 			}
