@@ -103,14 +103,14 @@ func (s *Server) startHTTP() error {
 // RegisterService registering gRPC service
 func (s *Server) RegisterService(desc *grpc.ServiceDesc, serviceImpl interface{}) {
 	s.grpcServer.RegisterService(desc, serviceImpl)
-	// auto bind http handler
-	if s.options.autoHttp {
-		for _, v := range desc.Methods {
-			path := "/" + desc.ServiceName + "/" + v.MethodName
-			s.logger.With("path", path).Log(logging.DEBUG, "handled")
-			s.mux.Handle(http.MethodPost, path, mux.HandlerGRPCService(s.mux.ServeMux(), serviceImpl, v))
-		}
-	}
+	// // auto bind http handler
+	// if s.options.autoHttp {
+	// 	for _, v := range desc.Methods {
+	// 		path := "/" + desc.ServiceName + "/" + v.MethodName
+	// 		s.logger.With("path", path).Log(logging.DEBUG, "handled")
+	// 		s.mux.Handle(http.MethodPost, path, mux.HandlerGRPCService(s.mux.ServeMux(), serviceImpl, v))
+	// 	}
+	// }
 }
 
 // Close
