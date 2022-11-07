@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"os"
+	"strings"
 	"time"
 
 	"github.com/goriller/ginny/interceptor"
@@ -23,9 +25,9 @@ import (
 )
 
 type options struct {
-	autoHttp bool // 开启http服务
 	grpcAddr string
 	httpAddr string
+	tags     []string // for register service
 
 	discover Discover
 	tracer   opentracing.Tracer
@@ -62,7 +64,12 @@ var defaultOptions = &options{
 type Option func(*options)
 
 func evaluateOptions(opts []Option) *options {
-	optCopy := &options{}
+	var tag []string
+	t := os.Getenv("SERVICE_TAG")
+	tag = strings.Split(t, ",")
+	optCopy := &options{
+		tags: tag,
+	}
 	*optCopy = *defaultOptions
 	for _, o := range opts {
 		o(optCopy)
@@ -75,6 +82,15 @@ func WithLogger(logger grpc_logging.Logger) Option {
 	return func(o *options) {
 		if logger != nil {
 			o.logger = logger
+		}
+	}
+}
+
+// WithTags
+func WithTags(tags []string) Option {
+	return func(o *options) {
+		if len(tags) > 0 {
+			o.tags = tags
 		}
 	}
 }
@@ -93,7 +109,6 @@ func WithHttpAddr(addr string) Option {
 	return func(o *options) {
 		if addr != "" {
 			o.httpAddr = addr
-			o.autoHttp = true
 		}
 	}
 }

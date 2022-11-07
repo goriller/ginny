@@ -46,7 +46,7 @@ func NewServer(logger *zap.Logger, opts ...Option) *Server {
 		locker:  &sync.Mutex{},
 	}
 	svc.grpcServer = grpc.NewServer(opt.grpcServerOpts...)
-	if opt.autoHttp {
+	if opt.httpAddr != "" {
 		svc.mux = mux.NewMuxServe(logger, opt.muxOptions...)
 		svc.httpServer = &http.Server{Addr: opt.httpAddr, Handler: svc.mux}
 	}
@@ -59,7 +59,7 @@ func NewServer(logger *zap.Logger, opts ...Option) *Server {
 func (s *Server) Start() {
 	graceful.AddCloser(s.Close)
 	fns := []graceful.Fn{s.startGRPC}
-	if s.options.autoHttp {
+	if s.options.httpAddr != "" {
 		fns = append(fns, s.startHTTP)
 	}
 	if s.options.discover != nil {
@@ -177,34 +177,24 @@ func (s *Server) register() error {
 		host = ip.GetLocalIP4()
 	}
 
-	// gRPC
 	for key := range s.grpcServer.GetServiceInfo() {
-		name := fmt.Sprintf("%s[%s/%s]", "grpc", s.options.grpcAddr, key)
-		err := s.options.discover.ServiceRegister(name, fmt.Sprintf("%s:%s", host, u.Port()), []string{"grpc"}, nil)
+		// gRPC
+		name := fmt.Sprintf("%s[%s]", key, "grpc")
+		err := s.options.discover.ServiceRegister(name, fmt.Sprintf("%s:%s", host, u.Port()), s.options.tags, nil)
 		if err != nil {
-			return errors.Wrap(err, "register service error")
+			return errors.Wrap(err, "register grpc service error")
 		}
 		s.logger.Log(logging.INFO, "register grpc service success: "+name)
-	}
-	// HTTP server
-	if s.options.autoHttp {
-		if !strings.Contains(s.options.httpAddr, "://") {
-			s.options.httpAddr = fmt.Sprintf("http://%s", s.options.httpAddr)
+
+		// HTTP
+		if s.options.httpAddr != "" {
+			hName := fmt.Sprintf("%s[%s]", key, "http")
+			err = s.options.discover.ServiceRegister(hName, fmt.Sprintf("%s:%s", host, u.Port()), s.options.tags, nil)
+			if err != nil {
+				return errors.Wrap(err, "register http service error")
+			}
+			s.logger.Log(logging.INFO, "register http service success: "+hName)
 		}
-		u, err := url.Parse(s.options.httpAddr)
-		if err != nil {
-			return err
-		}
-		host = u.Hostname()
-		if host == "" {
-			host = ip.GetLocalIP4()
-		}
-		name := fmt.Sprintf("%s[%s]", "http", s.options.httpAddr)
-		err = s.options.discover.ServiceRegister(name, fmt.Sprintf("%s:%s", host, u.Port()), []string{"http"}, nil)
-		if err != nil {
-			return errors.Wrap(err, "register http server error")
-		}
-		s.logger.Log(logging.INFO, "register http server success: "+name)
 	}
 
 	return nil
@@ -215,24 +205,25 @@ func (s *Server) deRegister() error {
 	if s.options.discover == nil {
 		return nil
 	}
-	// gRPC
+
 	for key := range s.grpcServer.GetServiceInfo() {
+		// gRPC
 		name := fmt.Sprintf("%s[%s/%s]", "http", s.options.grpcAddr, key)
 		err := s.options.discover.ServiceDeregister(name)
 		if err != nil {
 			return errors.Wrapf(err, "deregister service error[id=%s]", name)
 		}
 		s.logger.Log(logging.INFO, "deregister service success: "+name)
-	}
 
-	// HTTP server
-	if s.options.autoHttp {
-		name := fmt.Sprintf("%s[%s]", "http", s.options.httpAddr)
-		err := s.options.discover.ServiceDeregister(name)
-		if err != nil {
-			return errors.Wrapf(err, "deregister http server error[id=%s]", name)
+		// HTTP
+		if s.options.httpAddr != "" {
+			hName := fmt.Sprintf("%s[%s]", key, "http")
+			err = s.options.discover.ServiceDeregister(hName)
+			if err != nil {
+				return errors.Wrapf(err, "deregister http server error[id=%s]", hName)
+			}
+			s.logger.Log(logging.INFO, "deregister http server success: "+hName)
 		}
-		s.logger.Log(logging.INFO, "deregister http server success: "+name)
 	}
 
 	return nil
