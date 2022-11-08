@@ -157,6 +157,12 @@ func fullOptions(logger *zap.Logger,
 		o.bodyWriter = rewriter.DefaultBodyWriter(o.bodyMarshaler, o.bodyMarshaler, o.withoutHTTPStatus)
 	}
 
+	// tracer
+	if o.tracer != nil {
+		o.middleWares = append(o.middleWares,
+			middleware.TracerMiddleWare(o.tracer))
+	}
+
 	// limiter
 	if o.limiter != nil {
 		o.middleWares = append(o.middleWares,

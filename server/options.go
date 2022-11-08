@@ -2,10 +2,12 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 	"time"
 
+	"github.com/goriller/ginny-util/ip"
 	"github.com/goriller/ginny/interceptor"
 	"github.com/goriller/ginny/interceptor/limit"
 	"github.com/goriller/ginny/interceptor/logging"
@@ -25,9 +27,11 @@ import (
 )
 
 type options struct {
-	grpcAddr string
-	httpAddr string
-	tags     []string // for register service
+	grpcAddr    string
+	grpcSevAddr string
+	httpAddr    string
+	httpSevAddr string
+	tags        []string // for register service
 
 	discover Discover
 	tracer   opentracing.Tracer
@@ -67,6 +71,7 @@ func evaluateOptions(opts []Option) *options {
 	var tag []string
 	t := os.Getenv("SERVICE_TAG")
 	tag = strings.Split(t, ",")
+
 	optCopy := &options{
 		tags: tag,
 	}
@@ -74,6 +79,39 @@ func evaluateOptions(opts []Option) *options {
 	for _, o := range opts {
 		o(optCopy)
 	}
+
+	var (
+		host  string
+		port  string
+		ghost string
+		gport string
+	)
+	grpcAddrs := strings.Split(optCopy.grpcAddr, ":")
+	if len(grpcAddrs) == 2 {
+		ghost = grpcAddrs[0]
+		gport = grpcAddrs[1]
+	}
+	httpAddrs := strings.Split(optCopy.httpAddr, ":")
+	if len(httpAddrs) == 2 {
+		host = httpAddrs[0]
+		port = httpAddrs[1]
+	}
+	if ghost == "" {
+		ghost = ip.GetLocalIP4()
+	}
+	if host == "" {
+		host = ghost
+	}
+	if !strings.Contains(ghost, "://") {
+		ghost = fmt.Sprintf("grpc://%s:%s", ghost, gport)
+	}
+	if !strings.Contains(host, "://") {
+		host = fmt.Sprintf("http://%s:%s", host, port)
+	}
+
+	optCopy.grpcSevAddr = ghost
+	optCopy.httpSevAddr = host
+
 	return optCopy
 }
 
@@ -240,7 +278,6 @@ func fullOptions(logger *zap.Logger,
 			muxLoggingOpts...,
 		),
 		validator.UnaryServerInterceptor(false),
-		interceptor.TracerServerUnaryInterceptor(opt.tracer),
 	}
 
 	streamServerInterceptors := []grpc.StreamServerInterceptor{
@@ -251,7 +288,15 @@ func fullOptions(logger *zap.Logger,
 			muxLoggingOpts...,
 		),
 		validator.StreamServerInterceptor(false),
-		interceptor.TracerServerStreamInterceptor(opt.tracer),
+	}
+
+	// tracer
+	if opt.tracer != nil {
+		opt.muxOptions = append(opt.muxOptions, mux.WithTracer(opt.tracer))
+		unaryServerInterceptors = append(unaryServerInterceptors,
+			interceptor.TracerServerUnaryInterceptor(opt.tracer))
+		streamServerInterceptors = append(streamServerInterceptors,
+			interceptor.TracerServerStreamInterceptor(opt.tracer))
 	}
 	// limiter
 	if opt.limiter != nil {

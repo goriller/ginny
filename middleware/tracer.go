@@ -34,8 +34,7 @@ func TracerMiddleWare(t opentracing.Tracer) MuxMiddleware {
 				t = opentracing.GlobalTracer()
 			}
 
-			ctx := ChainHeader(w, r)
-
+			ctx := r.Context()
 			parentSpanContext, err := t.Extract(
 				opentracing.HTTPHeaders,
 				opentracing.HTTPHeadersCarrier(r.Header))
@@ -50,7 +49,7 @@ func TracerMiddleWare(t opentracing.Tracer) MuxMiddleware {
 				defer serverSpan.Finish()
 			}
 
-			r = r.WithContext(ctx)
+			r = r.WithContext(ChainHeader(ctx, w, r))
 			h.ServeHTTP(w, r)
 
 		}
@@ -58,12 +57,12 @@ func TracerMiddleWare(t opentracing.Tracer) MuxMiddleware {
 }
 
 // ChainHeader
-func ChainHeader(w http.ResponseWriter, r *http.Request) context.Context {
+func ChainHeader(ctx context.Context, w http.ResponseWriter, r *http.Request) context.Context {
 	var (
 		reqId     string
 		otHeaders = HeaderMap
 	)
-	ctx := r.Context()
+
 	preTags := tags.Extract(ctx)
 
 	for k, v := range otHeaders {

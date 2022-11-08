@@ -5,14 +5,11 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"net/url"
 	"os"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/goriller/ginny-util/graceful"
-	"github.com/goriller/ginny-util/ip"
 	"github.com/goriller/ginny/health"
 	"github.com/goriller/ginny/server/mux"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
@@ -171,22 +168,10 @@ func (s *Server) register(ctx context.Context) error {
 		return nil
 	}
 
-	if !strings.Contains(s.options.grpcAddr, "://") {
-		s.options.grpcAddr = fmt.Sprintf("grpc://%s", s.options.grpcAddr)
-	}
-	u, err := url.Parse(s.options.grpcAddr)
-	if err != nil {
-		return err
-	}
-	var host = u.Hostname()
-	if host == "" {
-		host = ip.GetLocalIP4()
-	}
-
 	for key := range s.grpcServer.GetServiceInfo() {
 		// gRPC
 		name := fmt.Sprintf("%s[%s]", key, "grpc")
-		err := s.options.discover.ServiceRegister(ctx, name, fmt.Sprintf("%s:%s", host, u.Port()), s.options.tags, nil)
+		err := s.options.discover.ServiceRegister(ctx, name, s.options.grpcSevAddr, s.options.tags, nil)
 		if err != nil {
 			return errors.Wrap(err, "register grpc service error")
 		}
@@ -195,7 +180,7 @@ func (s *Server) register(ctx context.Context) error {
 		// HTTP
 		if s.options.httpAddr != "" {
 			hName := fmt.Sprintf("%s[%s]", key, "http")
-			err = s.options.discover.ServiceRegister(ctx, hName, fmt.Sprintf("%s:%s", host, u.Port()), s.options.tags, nil)
+			err = s.options.discover.ServiceRegister(ctx, hName, s.options.httpSevAddr, s.options.tags, nil)
 			if err != nil {
 				return errors.Wrap(err, "register http service error")
 			}
@@ -214,21 +199,21 @@ func (s *Server) deRegister(ctx context.Context) error {
 
 	for key := range s.grpcServer.GetServiceInfo() {
 		// gRPC
-		name := fmt.Sprintf("%s[%s/%s]", "http", s.options.grpcAddr, key)
+		name := fmt.Sprintf("%s[%s]", key, "grpc")
 		err := s.options.discover.ServiceDeregister(ctx, name)
 		if err != nil {
-			return errors.Wrapf(err, "deregister service error[id=%s]", name)
+			return errors.Wrapf(err, "deregister grpc service error[id=%s]", name)
 		}
-		s.logger.Log(logging.INFO, "deregister service success: "+name)
+		s.logger.Log(logging.INFO, "deregister grpc service success: "+name)
 
 		// HTTP
 		if s.options.httpAddr != "" {
 			hName := fmt.Sprintf("%s[%s]", key, "http")
 			err = s.options.discover.ServiceDeregister(ctx, hName)
 			if err != nil {
-				return errors.Wrapf(err, "deregister http server error[id=%s]", hName)
+				return errors.Wrapf(err, "deregister http service error[id=%s]", hName)
 			}
-			s.logger.Log(logging.INFO, "deregister http server success: "+hName)
+			s.logger.Log(logging.INFO, "deregister http service success: "+hName)
 		}
 	}
 

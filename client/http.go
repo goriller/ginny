@@ -152,7 +152,7 @@ func (c *Client) Request(ctx context.Context, method,
 	if c.options.tracer != nil {
 		clientSpan := parseTrace(ctx, method, "httpClient-"+method, c.options.tracer)
 		carrier := opentracing.HTTPHeadersCarrier(header)
-		_ = c.options.tracer.Inject(clientSpan.Context(), opentracing.HTTPHeaders, carrier)
+		_ = clientSpan.Tracer().Inject(clientSpan.Context(), opentracing.HTTPHeaders, carrier)
 		header = http.Header(carrier)
 		defer clientSpan.Finish()
 	}
