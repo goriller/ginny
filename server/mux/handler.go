@@ -2,10 +2,7 @@ package mux
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"net/textproto"
-	"strings"
 
 	"github.com/goriller/ginny/middleware"
 	"github.com/goriller/ginny/server/mux/rewriter"
@@ -13,7 +10,6 @@ import (
 
 	// "github.com/grpc-ecosystem/grpc-gateway/v2/utilities"
 	"google.golang.org/genproto/googleapis/api/httpbody"
-	"google.golang.org/grpc/grpclog"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -21,42 +17,7 @@ func defaultErrorHandler(ctx context.Context,
 	mux *runtime.ServeMux, marshaler runtime.Marshaler,
 	w http.ResponseWriter, r *http.Request, err error,
 ) {
-	w.Header().Del("Trailer")
-	w.Header().Del("Transfer-Encoding")
-	md, ok := runtime.ServerMetadataFromContext(ctx)
-	if !ok {
-		grpclog.Infof("Failed to extract ServerMetadata from context")
-	}
-
-	// RFC 7230 https://tools.ietf.org/html/rfc7230#section-4.1.2
-	// Unless the request includes a TE header field indicating "trailers"
-	// is acceptable, as described in Section 4.3, a server SHOULD NOT
-	// generate trailer fields that it believes are necessary for the user
-	// agent to receive.
-
-	if te := r.Header.Get("TE"); strings.Contains(strings.ToLower(te), "trailers") {
-		handleForwardResponseTrailerHeader(w, md)
-		w.Header().Set("Transfer-Encoding", "chunked")
-		handleForwardResponseTrailer(w, md)
-	}
-
 	rewriter.WriteHTTPErrorResponse(w, r, err)
-}
-
-func handleForwardResponseTrailerHeader(w http.ResponseWriter, md runtime.ServerMetadata) {
-	for k := range md.TrailerMD {
-		tKey := textproto.CanonicalMIMEHeaderKey(fmt.Sprintf("%s%s", runtime.MetadataTrailerPrefix, k))
-		w.Header().Add("Trailer", tKey)
-	}
-}
-
-func handleForwardResponseTrailer(w http.ResponseWriter, md runtime.ServerMetadata) {
-	for k, vs := range md.TrailerMD {
-		tKey := runtime.MetadataTrailerPrefix + k
-		for _, v := range vs {
-			w.Header().Add(tKey, v)
-		}
-	}
 }
 
 // handlerWithMiddleWares handler with middle wares.
