@@ -19,6 +19,7 @@ import (
 	"github.com/pkg/errors"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/balancer/roundrobin"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
@@ -189,14 +190,27 @@ func newGrpcClientConn(ctx context.Context, opt *GrpcClientOptions) (*grpc.Clien
 
 	loadBalanceConfig := fmt.Sprintf(`{"LoadBalancingPolicy":"%s"}`, opt.loadBalance)
 	opt.grpcDialOptions = append(opt.grpcDialOptions,
+		grpc.WithInitialWindowSize(InitialWindowSize),
+		grpc.WithInitialConnWindowSize(InitialConnWindowSize),
 		grpc.WithDefaultServiceConfig(loadBalanceConfig),
 		grpc.WithChainUnaryInterceptor(unaryInterceptor...),
 		grpc.WithChainStreamInterceptor(streamInterceptor...),
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{
-			Time:                1 * time.Second,        // send pings every 1 seconds if there is no activity
-			Timeout:             500 * time.Millisecond, // wait 500 millisecond for ping ack before considering the connection dead
-			PermitWithoutStream: true,                   // send pings even without active streams
+			Time:                10 * time.Second, // send pings every 1 seconds if there is no activity
+			Timeout:             3 * time.Second,  // wait 500 millisecond for ping ack before considering the connection dead
+			PermitWithoutStream: true,             // send pings even without active streams
 		}),
+		grpc.WithConnectParams(
+			grpc.ConnectParams{
+				Backoff: backoff.Config{
+					MaxDelay: BackoffMaxDelay,
+				},
+			},
+		),
+		grpc.WithDefaultCallOptions(
+			grpc.MaxCallSendMsgSize(MaxSendMsgSize),
+			grpc.MaxCallRecvMsgSize(MaxRecvMsgSize),
+		),
 	)
 
 	if opt.tracer != nil {

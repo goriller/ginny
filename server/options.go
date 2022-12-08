@@ -26,6 +26,22 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const (
+	// InitialWindowSize we set it 1GB is to provide system's throughput.
+	InitialWindowSize = 1 << 30
+
+	// InitialConnWindowSize we set it 1GB is to provide system's throughput.
+	InitialConnWindowSize = 1 << 30
+
+	// MaxSendMsgSize set max gRPC request message size sent to server.
+	// If any request message size is larger than current value, an error will be reported from gRPC.
+	MaxSendMsgSize = 4 << 30
+
+	// MaxRecvMsgSize set max gRPC receive message size received from server.
+	// If any message size is larger than current value, an error will be reported from gRPC.
+	MaxRecvMsgSize = 4 << 30
+)
+
 type options struct {
 	grpcAddr    string
 	grpcSevAddr string
@@ -337,12 +353,26 @@ func fullOptions(logger *zap.Logger,
 	opt.grpcServerOpts = append(opt.grpcServerOpts,
 		grpc.ChainStreamInterceptor(streamServerInterceptors...),
 		grpc.ChainUnaryInterceptor(unaryServerInterceptors...),
+		grpc.MaxSendMsgSize(MaxSendMsgSize),
+		grpc.MaxRecvMsgSize(MaxRecvMsgSize),
+		grpc.InitialWindowSize(InitialWindowSize),
+		grpc.InitialConnWindowSize(InitialConnWindowSize),
 	)
 
 	if !opt.withOutKeepAliveOpts {
-		opt.grpcServerOpts = append(opt.grpcServerOpts, grpc.KeepaliveParams(keepalive.ServerParameters{
-			MaxConnectionAge: time.Minute,
-		}))
+		opt.grpcServerOpts = append(opt.grpcServerOpts,
+			grpc.KeepaliveParams(
+				keepalive.ServerParameters{
+					MaxConnectionAge: time.Minute,
+					Time:             time.Second * 10,
+					Timeout:          time.Second * 3,
+				}),
+			grpc.KeepaliveEnforcementPolicy(
+				keepalive.EnforcementPolicy{
+					PermitWithoutStream: true,
+				},
+			),
+		)
 	}
 
 	return
