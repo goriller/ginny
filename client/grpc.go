@@ -269,9 +269,8 @@ func evaluateOptions(ctx context.Context, u *url.URL, opts []GrpcClientOptional)
 	if u.Scheme == "grpc" || u.Scheme == "http" {
 		opt.target = u.Host
 	}
-	tag := query.Get("tag")
-
 	if opt.resolver != nil {
+		tag := query.Get("tag")
 		addr, err := opt.resolver(ctx, u.String(), tag)
 		if err != nil {
 			return nil, err
