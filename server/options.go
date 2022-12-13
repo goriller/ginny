@@ -47,6 +47,7 @@ type options struct {
 	grpcSevAddr string
 	httpAddr    string
 	httpSevAddr string
+	metricsAddr string
 	tags        []string // for register service
 
 	discover Discover

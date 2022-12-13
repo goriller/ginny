@@ -15,6 +15,7 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/pkg/errors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
@@ -28,9 +29,10 @@ type Server struct {
 	options *options
 	mux     *mux.MuxServe
 
-	grpcServer   *grpc.Server
-	httpServer   *http.Server
-	healthServer *health.HealthServer
+	grpcServer    *grpc.Server
+	httpServer    *http.Server
+	metricsServer *http.Server
+	healthServer  *health.HealthServer
 }
 
 // NewServer new grpc server with all common middleware.
@@ -47,6 +49,11 @@ func NewServer(ctx context.Context, logger *zap.Logger, opts ...Option) *Server 
 		svc.mux = mux.NewMuxServe(logger, opt.muxOptions...)
 		svc.httpServer = &http.Server{Addr: opt.httpAddr, Handler: svc.mux}
 	}
+
+	if opt.metricsAddr != "" {
+		svc.metricsServer = &http.Server{Addr: opt.metricsAddr, Handler: promhttp.Handler()}
+	}
+
 	svc.healthServer = health.NewHealthServer()
 
 	return svc
@@ -61,6 +68,11 @@ func (s *Server) Start(ctx context.Context) {
 	if s.options.httpAddr != "" {
 		fns = append(fns, func() error {
 			return s.startHTTP(ctx)
+		})
+	}
+	if s.options.metricsAddr != "" {
+		fns = append(fns, func() error {
+			return s.startMetrics(ctx)
 		})
 	}
 	if s.options.discover != nil {
@@ -94,11 +106,21 @@ func (s *Server) startHTTP(ctx context.Context) error {
 		return nil
 	}
 	s.logger.Log(logging.INFO, "start http at "+s.options.httpAddr)
-	if err := s.httpServer.ListenAndServe(); err != nil {
-		if errors.Is(err, http.ErrServerClosed) {
-			return nil
-		}
+	err := s.httpServer.ListenAndServe()
+	if !errors.Is(err, http.ErrServerClosed) {
 		return errors.New("start http failed for " + err.Error())
+	}
+	return nil
+}
+
+func (s *Server) startMetrics(ctx context.Context) error {
+	if s.metricsServer == nil {
+		return nil
+	}
+	s.logger.Log(logging.INFO, "start metrics at "+s.options.metricsAddr)
+	err := s.metricsServer.ListenAndServe()
+	if !errors.Is(err, http.ErrServerClosed) {
+		return errors.New("start metrics failed for " + err.Error())
 	}
 	return nil
 }
