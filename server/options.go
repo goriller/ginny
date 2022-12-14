@@ -168,6 +168,15 @@ func WithHttpAddr(addr string) Option {
 	}
 }
 
+// WithMetricsAddr
+func WithMetricsAddr(addr string) Option {
+	return func(o *options) {
+		if addr != "" {
+			o.metricsAddr = addr
+		}
+	}
+}
+
 // WithDiscover
 func WithDiscover(d Discover) Option {
 	return func(o *options) {

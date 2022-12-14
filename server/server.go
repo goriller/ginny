@@ -148,6 +148,9 @@ func (s *Server) Close(ctx context.Context) error {
 	if s.healthServer != nil {
 		s.healthServer.Close()
 	}
+	if s.metricsServer != nil {
+		s.metricsServer.Close()
+	}
 	// deRegister
 	err := s.deRegister(ctx)
 	if err != nil {

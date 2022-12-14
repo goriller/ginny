@@ -51,10 +51,11 @@ type Application struct {
 
 // Option
 type Option struct {
-	Name     string
-	Version  string
-	GrpcAddr string
-	HttpAddr string
+	Name        string
+	Version     string
+	GrpcAddr    string
+	HttpAddr    string
+	MetricsAddr string
 }
 
 // NewOption
@@ -89,6 +90,11 @@ func NewApp(
 	if option.HttpAddr != "" {
 		opts = append(opts,
 			server.WithHttpAddr(option.HttpAddr),
+		)
+	}
+	if option.MetricsAddr != "" {
+		opts = append(opts,
+			server.WithMetricsAddr(option.MetricsAddr),
 		)
 	}
 
