@@ -75,6 +75,8 @@ type Discover interface {
 var defaultOptions = &options{
 	grpcAddr:                 ":9000",
 	httpAddr:                 ":8080",
+	metricsAddr:              ":9090",
+	tags:                     []string{},
 	muxOptions:               []mux.Optional{},
 	grpcServerOpts:           []grpc.ServerOption{},
 	streamServerInterceptors: []grpc.StreamServerInterceptor{},
@@ -85,49 +87,35 @@ var defaultOptions = &options{
 type Option func(*options)
 
 func evaluateOptions(opts []Option) *options {
-	var tag []string
-	t := os.Getenv("SERVICE_TAG")
-	tag = strings.Split(t, ",")
 
-	optCopy := &options{
-		tags: tag,
-	}
+	optCopy := &options{}
 	*optCopy = *defaultOptions
 	for _, o := range opts {
 		o(optCopy)
 	}
 
-	var (
-		host  string
-		port  string
-		ghost string
-		gport string
-	)
-	grpcAddrs := strings.Split(optCopy.grpcAddr, ":")
-	if len(grpcAddrs) == 2 {
-		ghost = grpcAddrs[0]
-		gport = grpcAddrs[1]
-	}
+	t := os.Getenv("SERVICE_TAG")
+	tags := strings.Split(t, ",")
+	optCopy.tags = append(optCopy.tags, tags...)
+
+	localIp := ip.GetLocalIP4()
 	httpAddrs := strings.Split(optCopy.httpAddr, ":")
 	if len(httpAddrs) == 2 {
-		host = httpAddrs[0]
-		port = httpAddrs[1]
-	}
-	if ghost == "" {
-		ghost = ip.GetLocalIP4()
-	}
-	if host == "" {
-		host = ghost
-	}
-	if !strings.Contains(ghost, "://") {
-		ghost = fmt.Sprintf("grpc://%s:%s", ghost, gport)
-	}
-	if !strings.Contains(host, "://") {
-		host = fmt.Sprintf("http://%s:%s", host, port)
+		host := httpAddrs[0]
+		if host == "" {
+			host = localIp
+		}
+		optCopy.httpSevAddr = fmt.Sprintf("http://%s:%s", host, httpAddrs[1])
 	}
 
-	optCopy.grpcSevAddr = ghost
-	optCopy.httpSevAddr = host
+	grpcAddrs := strings.Split(optCopy.grpcAddr, ":")
+	if len(grpcAddrs) == 2 {
+		host := grpcAddrs[0]
+		if host == "" {
+			host = localIp
+		}
+		optCopy.grpcSevAddr = fmt.Sprintf("http://%s:%s", host, grpcAddrs[1])
+	}
 
 	return optCopy
 }
@@ -178,10 +166,13 @@ func WithMetricsAddr(addr string) Option {
 }
 
 // WithDiscover
-func WithDiscover(d Discover) Option {
+func WithDiscover(d Discover, tags ...string) Option {
 	return func(o *options) {
 		if d != nil {
 			o.discover = d
+		}
+		if len(tags) > 0 {
+			o.tags = append(o.tags, tags...)
 		}
 	}
 }
