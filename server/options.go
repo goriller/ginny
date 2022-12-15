@@ -114,7 +114,7 @@ func evaluateOptions(opts []Option) *options {
 		if host == "" {
 			host = localIp
 		}
-		optCopy.grpcSevAddr = fmt.Sprintf("http://%s:%s", host, grpcAddrs[1])
+		optCopy.grpcSevAddr = fmt.Sprintf("grpc://%s:%s", host, grpcAddrs[1])
 	}
 
 	return optCopy
