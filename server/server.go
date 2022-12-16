@@ -216,7 +216,7 @@ func (s *Server) register(ctx context.Context) error {
 	return nil
 }
 
-// deRegister deregistering from service discovery
+// deRegister deregistered from service discovery
 func (s *Server) deRegister(ctx context.Context) error {
 	if s.options.discover == nil {
 		return nil
