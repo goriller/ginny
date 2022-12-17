@@ -6,12 +6,13 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/goriller/ginny-util/graceful"
 	"github.com/goriller/ginny/interceptor"
-	"github.com/goriller/ginny/interceptor/logging"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/timeout"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
@@ -27,8 +28,8 @@ import (
 	"google.golang.org/grpc/metadata"
 )
 
-// GrpcClientOptions
-type GrpcClientOptions struct {
+// ClientOptions
+type ClientOptions struct {
 	target          string // ip+port/serviceName
 	timeout         time.Duration
 	retryTimes      int
@@ -41,12 +42,12 @@ type GrpcClientOptions struct {
 	grpcDialOptions []grpc.DialOption
 }
 
-// GrpcClientOptional
-type GrpcClientOptional func(o *GrpcClientOptions)
+// ClientOptional
+type ClientOptional func(o *ClientOptions)
 
 // WithTimeout
-func WithTimeout(t time.Duration) GrpcClientOptional {
-	return func(o *GrpcClientOptions) {
+func WithTimeout(t time.Duration) ClientOptional {
+	return func(o *ClientOptions) {
 		if t > 0 {
 			o.timeout = t
 		}
@@ -54,50 +55,50 @@ func WithTimeout(t time.Duration) GrpcClientOptional {
 }
 
 // WithLoadBalance
-func WithLoadBalance(loadBalance string) GrpcClientOptional {
-	return func(o *GrpcClientOptions) {
+func WithLoadBalance(loadBalance string) ClientOptional {
+	return func(o *ClientOptions) {
 		o.loadBalance = loadBalance
 	}
 }
 
 // WithSecure
-func WithSecure(secure bool) GrpcClientOptional {
-	return func(o *GrpcClientOptions) {
+func WithSecure(secure bool) ClientOptional {
+	return func(o *ClientOptions) {
 		o.secure = secure
 	}
 }
 
 // WithMetrics
-func WithMetrics(metrics bool) GrpcClientOptional {
-	return func(o *GrpcClientOptions) {
+func WithMetrics(metrics bool) ClientOptional {
+	return func(o *ClientOptions) {
 		o.metrics = metrics
 	}
 }
 
-// WithGrpcLogger
-func WithGrpcLogger(logger *zap.Logger) GrpcClientOptional {
-	return func(o *GrpcClientOptions) {
+// WithLogger
+func WithLogger(logger *zap.Logger) ClientOptional {
+	return func(o *ClientOptions) {
 		o.logger = logger
 	}
 }
 
-// WithGrpcTracer
-func WithGrpcTracer(tracer opentracing.Tracer) GrpcClientOptional {
-	return func(o *GrpcClientOptions) {
+// WithTracer
+func WithTracer(tracer opentracing.Tracer) ClientOptional {
+	return func(o *ClientOptions) {
 		o.tracer = tracer
 	}
 }
 
-// WithGrpcResolver
-func WithGrpcResolver(resolver Resolver) GrpcClientOptional {
-	return func(o *GrpcClientOptions) {
+// WithResolver
+func WithResolver(resolver Resolver) ClientOptional {
+	return func(o *ClientOptions) {
 		o.resolver = resolver
 	}
 }
 
-// WithGrpcDialOptions
-func WithGrpcDialOptions(options ...grpc.DialOption) GrpcClientOptional {
-	return func(o *GrpcClientOptions) {
+// WithDialOptions
+func WithDialOptions(options ...grpc.DialOption) ClientOptional {
+	return func(o *ClientOptions) {
 		o.grpcDialOptions = append(o.grpcDialOptions, options...)
 	}
 }
@@ -112,9 +113,9 @@ func BindMetadataForContext(ctx context.Context, data map[string]string) context
 	return cc
 }
 
-// NewGrpcClient 参数 bNewXxxClient 对应 pb.NewXxxClient 方法
-func NewGrpcClient(ctx context.Context, uri string, pbNewXxxClient interface{},
-	opts ...GrpcClientOptional) (interface{}, error) {
+// NewClient 参数 bNewXxxClient 对应 pb.NewXxxClient 方法
+func NewClient(ctx context.Context, uri string, pbNewXxxClient interface{},
+	opts ...ClientOptional) (interface{}, error) {
 	u, err := url.Parse(uri)
 	if err != nil {
 		return nil, fmt.Errorf("parse grpc uri %s error for %w", uri, err)
@@ -134,7 +135,7 @@ func NewGrpcClient(ctx context.Context, uri string, pbNewXxxClient interface{},
 	if !isGRPCCreator {
 		return nil, fmt.Errorf("function %s is not grpc creator", pbNewXxxClient)
 	}
-	conn, err := newGrpcClientConn(ctx, opt)
+	conn, err := newClientConn(ctx, opt)
 	if err != nil {
 		return nil, fmt.Errorf("connect %s error for %w", u.String(), err)
 	}
@@ -144,17 +145,23 @@ func NewGrpcClient(ctx context.Context, uri string, pbNewXxxClient interface{},
 	return client, nil
 }
 
-// newGrpcClientConn
-func newGrpcClientConn(ctx context.Context, opt *GrpcClientOptions) (*grpc.ClientConn, error) {
+// newClientConn
+func newClientConn(ctx context.Context, opt *ClientOptions) (*grpc.ClientConn, error) {
 	var unaryInterceptor = []grpc.UnaryClientInterceptor{}
 	var streamInterceptor = []grpc.StreamClientInterceptor{}
 	// logger
 	if opt.logger != nil {
 		logger := grpc_zap.InterceptorLogger(opt.logger)
+		decider := func(fullMethodName string, err error) logging.Decision {
+			if strings.HasPrefix(fullMethodName, "/grpc.health.v1.Health/") {
+				return logging.NoLogCall
+			}
+			return logging.LogFinishCall
+		}
 		unaryInterceptor = append(unaryInterceptor,
-			logging.UnaryClientInterceptor(logger))
+			logging.UnaryClientInterceptor(logger, logging.WithDecider(decider)))
 		streamInterceptor = append(streamInterceptor,
-			logging.StreamClientInterceptor(logger))
+			logging.StreamClientInterceptor(logger, logging.WithDecider(decider)))
 	}
 	// timeout
 	if opt.timeout > 0 {
@@ -193,8 +200,6 @@ func newGrpcClientConn(ctx context.Context, opt *GrpcClientOptions) (*grpc.Clien
 		grpc.WithInitialWindowSize(InitialWindowSize),
 		grpc.WithInitialConnWindowSize(InitialConnWindowSize),
 		grpc.WithDefaultServiceConfig(loadBalanceConfig),
-		grpc.WithChainUnaryInterceptor(unaryInterceptor...),
-		grpc.WithChainStreamInterceptor(streamInterceptor...),
 		grpc.WithKeepaliveParams(keepalive.ClientParameters{
 			Time:                10 * time.Second, // send pings every 1 seconds if there is no activity
 			Timeout:             3 * time.Second,  // wait 500 millisecond for ping ack before considering the connection dead
@@ -211,6 +216,9 @@ func newGrpcClientConn(ctx context.Context, opt *GrpcClientOptions) (*grpc.Clien
 			grpc.MaxCallSendMsgSize(MaxSendMsgSize),
 			grpc.MaxCallRecvMsgSize(MaxRecvMsgSize),
 		),
+
+		grpc.WithChainUnaryInterceptor(unaryInterceptor...),
+		grpc.WithChainStreamInterceptor(streamInterceptor...),
 	)
 
 	if opt.tracer != nil {
@@ -249,8 +257,8 @@ func newGrpcClientConn(ctx context.Context, opt *GrpcClientOptions) (*grpc.Clien
 	return conn, nil
 }
 
-func evaluateOptions(ctx context.Context, u *url.URL, opts []GrpcClientOptional) (*GrpcClientOptions, error) {
-	opt := &GrpcClientOptions{}
+func evaluateOptions(ctx context.Context, u *url.URL, opts []ClientOptional) (*ClientOptions, error) {
+	opt := &ClientOptions{}
 	for _, o := range opts {
 		o(opt)
 	}
@@ -265,6 +273,7 @@ func evaluateOptions(ctx context.Context, u *url.URL, opts []GrpcClientOptional)
 	falseStr := "false"
 	opt.secure = query.Get("secure") != falseStr
 	opt.metrics = query.Get("metrics") != falseStr
+	opt.timeout, _ = time.ParseDuration(query.Get("timeout"))
 	opt.target = u.String()
 	if u.Scheme == "grpc" || u.Scheme == "http" {
 		opt.target = u.Host

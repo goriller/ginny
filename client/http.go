@@ -35,8 +35,8 @@ const (
 	RequestIDHeader   = "X-Request-Id"
 )
 
-// ClientOptions
-type ClientOptions struct {
+// HttpClientOptions
+type HttpClientOptions struct {
 	target                string // ip+port/path
 	logger                *zap.Logger
 	tracer                opentracing.Tracer
@@ -48,11 +48,11 @@ type ClientOptions struct {
 }
 
 // ClientOptional
-type ClientOptional func(o *ClientOptions)
+type HttpClientOptional func(o *HttpClientOptions)
 
 // WithReqestTimeout
-func WithReqestTimeout(t time.Duration) ClientOptional {
-	return func(opt *ClientOptions) {
+func WithReqestTimeout(t time.Duration) HttpClientOptional {
+	return func(opt *HttpClientOptions) {
 		if t > 0 {
 			opt.timeout = t
 		}
@@ -60,43 +60,43 @@ func WithReqestTimeout(t time.Duration) ClientOptional {
 }
 
 // WithRetryTimes 设置失败重试
-func WithRetryTimes(retryTimes int) ClientOptional {
-	return func(opt *ClientOptions) {
+func WithRetryTimes(retryTimes int) HttpClientOptional {
+	return func(opt *HttpClientOptions) {
 		if retryTimes > 0 {
 			opt.retryTimes = retryTimes
 		}
 	}
 }
 
-// WithLogger
-func WithLogger(logger *zap.Logger) ClientOptional {
-	return func(o *ClientOptions) {
+// WithHttpLogger
+func WithHttpLogger(logger *zap.Logger) HttpClientOptional {
+	return func(o *HttpClientOptions) {
 		o.logger = logger
 	}
 }
 
-// WithTracer
-func WithTracer(tracer opentracing.Tracer) ClientOptional {
-	return func(o *ClientOptions) {
+// WithHttpTracer
+func WithHttpTracer(tracer opentracing.Tracer) HttpClientOptional {
+	return func(o *HttpClientOptions) {
 		o.tracer = tracer
 	}
 }
 
-// WithResolver
-func WithResolver(resolver Resolver) ClientOptional {
-	return func(o *ClientOptions) {
+// WithHttpResolver
+func WithHttpResolver(resolver Resolver) HttpClientOptional {
+	return func(o *HttpClientOptions) {
 		o.resolver = resolver
 	}
 }
 
-// Client
-type Client struct {
+// HttpClient
+type HttpClient struct {
 	client  *http.Client
-	options *ClientOptions
+	options *HttpClientOptions
 }
 
-// NewClient
-func NewClient(ctx context.Context, uri string, opts ...ClientOptional) (*Client, error) {
+// NewHttpClient
+func NewHttpClient(ctx context.Context, uri string, opts ...HttpClientOptional) (*HttpClient, error) {
 	u, err := url.Parse(uri)
 	if err != nil {
 		return nil, fmt.Errorf("parse uri %s error for %w", uri, err)
@@ -106,11 +106,11 @@ func NewClient(ctx context.Context, uri string, opts ...ClientOptional) (*Client
 		return nil, err
 	}
 
-	cli, err := newClientConn(ctx, opt)
+	cli, err := newHttpClientConn(ctx, opt)
 	if err != nil {
 		return nil, err
 	}
-	return &Client{
+	return &HttpClient{
 		client:  cli,
 		options: opt,
 	}, nil
@@ -118,11 +118,11 @@ func NewClient(ctx context.Context, uri string, opts ...ClientOptional) (*Client
 }
 
 // newClientConn
-func newClientConn(ctx context.Context, o *ClientOptions) (*http.Client, error) {
+func newHttpClientConn(ctx context.Context, o *HttpClientOptions) (*http.Client, error) {
 	transport := &http.Transport{
 		MaxIdleConns:        100,
 		IdleConnTimeout:     90 * time.Second,
-		MaxIdleConnsPerHost: 100, //默认是2
+		MaxIdleConnsPerHost: 10, //默认是10
 	}
 
 	return &http.Client{
@@ -133,7 +133,7 @@ func newClientConn(ctx context.Context, o *ClientOptions) (*http.Client, error) 
 
 // Request 自动序列化和反序列化地请求
 // 请求 和 响应 支持 struct 和 string 和 []byte 三种方式
-func (c *Client) Request(ctx context.Context, method,
+func (c *HttpClient) Request(ctx context.Context, method,
 	path string, header http.Header, reqData interface{},
 	respDataPtr interface{},
 ) (err error) {
@@ -195,7 +195,7 @@ func (c *Client) Request(ctx context.Context, method,
 	return nil
 }
 
-func (c *Client) request(ctx context.Context, method, uri string,
+func (c *HttpClient) request(ctx context.Context, method, uri string,
 	header http.Header, reqBody []byte,
 ) (*http.Response, error) {
 	var (
@@ -216,7 +216,7 @@ func (c *Client) request(ctx context.Context, method, uri string,
 	return ctxhttp.Do(ctx, c.client, request)
 }
 
-func (c *Client) onRequestClose(ctx context.Context,
+func (c *HttpClient) onRequestClose(ctx context.Context,
 	method, path string, tryTimes int, start time.Time,
 	header http.Header, statusCode int, err error,
 ) {
@@ -240,7 +240,7 @@ func (c *Client) onRequestClose(ctx context.Context,
 }
 
 // buildRequestBody
-func (c *Client) buildRequestBody(ctx context.Context,
+func (c *HttpClient) buildRequestBody(ctx context.Context,
 	header http.Header, reqData interface{}) (reqBody []byte, err error) {
 	if reqData == nil {
 		return
@@ -264,7 +264,7 @@ func (c *Client) buildRequestBody(ctx context.Context,
 }
 
 // parseResponseBody
-func (c *Client) parseResponseBody(ctx context.Context,
+func (c *HttpClient) parseResponseBody(ctx context.Context,
 	body io.ReadCloser, respDataPtr interface{}) (err error) {
 	respBody, err := ioutil.ReadAll(body)
 	if respDataPtr != nil {
@@ -304,8 +304,8 @@ func parseTrace(ctx context.Context, method, tag string, tracer opentracing.Trac
 }
 
 // parseOptions
-func parseOptions(ctx context.Context, u *url.URL, options ...ClientOptional) (*ClientOptions, error) {
-	o := &ClientOptions{
+func parseOptions(ctx context.Context, u *url.URL, options ...HttpClientOptional) (*HttpClientOptions, error) {
+	o := &HttpClientOptions{
 		timeout:    DefaultTimeout,
 		retryTimes: DefaultRetryTimes,
 		protoJSONMarshaller: &protojson.MarshalOptions{
