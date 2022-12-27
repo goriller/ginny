@@ -3,8 +3,8 @@ package mux
 import (
 	"net/http"
 
-	"github.com/goriller/ginny/health"
 	"github.com/goriller/ginny/middleware"
+	"github.com/goriller/ginny/server/health"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"go.uber.org/zap"
 )

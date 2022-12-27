@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/goriller/ginny-util/graceful"
-	"github.com/goriller/ginny/health"
+	"github.com/goriller/ginny/server/health"
 	"github.com/goriller/ginny/server/mux"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
