@@ -41,7 +41,7 @@ func limit(ctx context.Context, fullMethod string, limiter *Limiter) error {
 	if lv.Quota == Block {
 		return status.Errorf(codes.Aborted, "%s is aborted for %s", fullMethod, lv.Message)
 	}
-	_, resetIn, allowed := limiter.PersistenceFn(ctx, lv.Key, lv.Quota, lv.Duration, 1)
+	_, resetIn, allowed := limiter.RateFn(ctx, lv.Key, lv.Quota, lv.Duration, 1)
 	if !allowed {
 		return status.Errorf(codes.ResourceExhausted, "method is rejected for %s, "+
 			"please try in %s. ", lv.Message, resetIn)

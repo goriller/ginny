@@ -106,7 +106,7 @@ type LimitValue struct {
 	Key string
 	// 频次限制提示消息
 	Message string
-	// Duration 周期
+	// Duration 周期(向桶中放置 Token 的间隔)
 	Duration time.Duration
 	// Quota 配额
 	Quota int
