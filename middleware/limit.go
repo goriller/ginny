@@ -46,6 +46,9 @@ func LimitMiddleWare(limiter *limit.Limiter) MuxMiddleware {
 				rewriter.WriteHTTPErrorResponse(w, r, status.Errorf(codes.Aborted, "rate limit aborted, %s", lv.Message))
 				return
 			}
+			if limiter.RateFn == nil {
+				limiter.RateFn = limit.DefaultRateFn
+			}
 			remaining, reset, allowed := limiter.RateFn(r.Context(), lv.Key, lv.Quota, lv.Duration, 1)
 			w.Header().Set("X-RateLimit-Limit", strconv.Itoa(lv.Quota))
 			w.Header().Set("X-RateLimit-Remaining", strconv.Itoa(remaining))
