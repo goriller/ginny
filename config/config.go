@@ -46,11 +46,12 @@ func NewConfig() (*viper.Viper, error) {
 	v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	// 监听配置文件变更
 	v.WatchConfig()
-	v.OnConfigChange(func(in fsnotify.Event) {
-		logger.Default().Info("Config file updated.")
+	v.OnConfigChange(func(_ fsnotify.Event) {
+		log := logger.Default()
+		log.Info("Config file updated.")
 		err := loadConfig(v)
 		if err != nil {
-			logger.Default().Error("Config file reload error." + err.Error())
+			log.Error("Config file reload error." + err.Error())
 		}
 	})
 
@@ -68,7 +69,8 @@ func NewConfig() (*viper.Viper, error) {
 
 // loadConfig
 func loadConfig(v *viper.Viper) error {
-	logger.Default().Info("Loading config...")
+	log := logger.Default()
+	log.Info("Loading config...")
 	// load config from remote
 	p := os.Getenv("REMOTE_CONFIG")
 	if remoteConfig == "" {
@@ -81,7 +83,7 @@ func loadConfig(v *viper.Viper) error {
 	if err != nil {
 		return err
 	}
-	logger.Default().Info("Getting environment variables...")
+	log.Info("Getting environment variables...")
 	conf := expandEnv(string(data))
 	err = v.ReadConfig(bytes.NewReader([]byte(conf)))
 	if err != nil {
