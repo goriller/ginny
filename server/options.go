@@ -75,7 +75,7 @@ type Discover interface {
 var defaultOptions = &options{
 	grpcAddr:                 ":9000",
 	httpAddr:                 ":8080",
-	metricsAddr:              ":9090",
+	metricsAddr:              ":8081",
 	tags:                     []string{},
 	muxOptions:               []mux.Optional{},
 	grpcServerOpts:           []grpc.ServerOption{},
