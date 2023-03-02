@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -129,6 +128,52 @@ func newHttpClientConn(ctx context.Context, o *HttpClientOptions) (*http.Client,
 		Transport: transport,
 		Timeout:   0, //默认是0，无超时
 	}, nil
+}
+
+// Get
+func (c *HttpClient) Get(ctx context.Context, path string, header http.Header,
+	reqData url.Values, rspPtr interface{}) (err error) {
+	uri := path
+	if reqData != nil {
+		uri, err = buildQuery(path, reqData)
+		if err != nil {
+			return err
+		}
+	}
+	return c.Request(ctx, "GET", uri, header, "", rspPtr)
+}
+
+// GetRaw
+func (c *HttpClient) GetRaw(ctx context.Context, path string, header http.Header,
+	reqData url.Values) (rsp string, err error) {
+	uri := path
+	if reqData != nil {
+		uri, err = buildQuery(path, reqData)
+		if err != nil {
+			return "", err
+		}
+	}
+	err = c.Request(ctx, "GET", uri, header, "", &rsp)
+	if err != nil {
+		return "", err
+	}
+	return rsp, nil
+}
+
+// Post
+func (c *HttpClient) Post(ctx context.Context, path string, header http.Header,
+	reqData interface{}, rspPtr interface{}) (err error) {
+	return c.Request(ctx, "POST", path, header, reqData, rspPtr)
+}
+
+// PostRaw
+func (c *HttpClient) PostRaw(ctx context.Context, path string, header http.Header,
+	reqData interface{}) (rsp string, err error) {
+	err = c.Request(ctx, "POST", path, header, reqData, &rsp)
+	if err != nil {
+		return "", err
+	}
+	return rsp, nil
 }
 
 // Request 自动序列化和反序列化地请求
@@ -266,11 +311,13 @@ func (c *HttpClient) buildRequestBody(ctx context.Context,
 // parseResponseBody
 func (c *HttpClient) parseResponseBody(ctx context.Context,
 	body io.ReadCloser, respDataPtr interface{}) (err error) {
-	respBody, err := ioutil.ReadAll(body)
+	respBody, err := io.ReadAll(body)
 	if respDataPtr != nil {
 		switch v := respDataPtr.(type) {
 		case *string:
 			*v = string(respBody)
+		case *[]byte:
+			*v = respBody
 		default:
 			if _, ok := respDataPtr.(proto.Message); ok {
 				err = c.options.protoJSONUnmarshaller.Unmarshal(respBody,
@@ -323,13 +370,10 @@ func parseOptions(ctx context.Context, u *url.URL, options ...HttpClientOptional
 	if query.Get("emitUnpopulated") == "true" {
 		o.protoJSONMarshaller.EmitUnpopulated = true
 	}
-	if u.Scheme == "http" || u.Scheme == "https" {
-		o.target = u.String()
-	}
 
-	tag := query.Get("tag")
 	if o.resolver != nil {
-		addr, err := o.resolver(ctx, u.String(), tag)
+		tag := query.Get("tag")
+		addr, err := o.resolver(ctx, u.String(), []string{tag})
 		if err != nil {
 			return nil, err
 		}

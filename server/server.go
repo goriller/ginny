@@ -195,7 +195,7 @@ func (s *Server) register(ctx context.Context) error {
 
 	for key := range s.grpcServer.GetServiceInfo() {
 		// gRPC
-		name := fmt.Sprintf("%s[%s]", key, "grpc")
+		name := fmt.Sprintf("%s.%s", key, "grpc")
 		err := s.options.discover.ServiceRegister(ctx, name, s.options.grpcSevAddr, s.options.tags, nil)
 		if err != nil {
 			return errors.Wrap(err, "register grpc service error")
@@ -204,7 +204,7 @@ func (s *Server) register(ctx context.Context) error {
 
 		// HTTP
 		if s.options.httpAddr != "" {
-			hName := fmt.Sprintf("%s[%s]", key, "http")
+			hName := fmt.Sprintf("%s.%s", key, "http")
 			err = s.options.discover.ServiceRegister(ctx, hName, s.options.httpSevAddr, s.options.tags, nil)
 			if err != nil {
 				return errors.Wrap(err, "register http service error")

@@ -26,6 +26,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/grpc/resolver"
 )
 
 // ClientOptions
@@ -36,7 +37,6 @@ type ClientOptions struct {
 	loadBalance     string
 	secure          bool
 	metrics         bool
-	resolver        Resolver
 	logger          *zap.Logger
 	tracer          opentracing.Tracer
 	grpcDialOptions []grpc.DialOption
@@ -90,9 +90,9 @@ func WithTracer(tracer opentracing.Tracer) ClientOptional {
 }
 
 // WithResolver
-func WithResolver(resolver Resolver) ClientOptional {
+func WithResolver(r resolver.Builder) ClientOptional {
 	return func(o *ClientOptions) {
-		o.resolver = resolver
+		resolver.Register(r)
 	}
 }
 
@@ -277,14 +277,6 @@ func evaluateOptions(ctx context.Context, u *url.URL, opts []ClientOptional) (*C
 	opt.target = u.String()
 	if u.Scheme == "grpc" || u.Scheme == "http" {
 		opt.target = u.Host
-	}
-	if opt.resolver != nil {
-		tag := query.Get("tag")
-		addr, err := opt.resolver(ctx, u.String(), tag)
-		if err != nil {
-			return nil, err
-		}
-		opt.target = addr
 	}
 
 	return opt, nil

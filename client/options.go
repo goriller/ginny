@@ -34,4 +34,4 @@ const (
 )
 
 // Resolver resolver the host
-type Resolver func(ctx context.Context, service, tag string) (addr string, err error)
+type Resolver func(ctx context.Context, service string, tags []string) (addr string, err error)
