@@ -158,10 +158,10 @@ func fullOptions(logger *zap.Logger,
 	}
 
 	// tracer
-	if o.tracer != nil {
-		o.middleWares = append(o.middleWares,
-			middleware.TracerMiddleWare(o.tracer))
-	}
+	// if o.tracer != nil {
+	o.middleWares = append(o.middleWares,
+		middleware.TracerMiddleWare(o.tracer))
+	// }
 
 	// limiter
 	if o.limiter != nil {

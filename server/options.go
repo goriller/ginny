@@ -308,13 +308,13 @@ func fullOptions(logger *zap.Logger,
 	}
 
 	// tracer
-	if opt.tracer != nil {
-		opt.muxOptions = append(opt.muxOptions, mux.WithTracer(opt.tracer))
-		unaryServerInterceptors = append(unaryServerInterceptors,
-			interceptor.TracerServerUnaryInterceptor(opt.tracer))
-		streamServerInterceptors = append(streamServerInterceptors,
-			interceptor.TracerServerStreamInterceptor(opt.tracer))
-	}
+	// if opt.tracer != nil {
+	opt.muxOptions = append(opt.muxOptions, mux.WithTracer(opt.tracer))
+	unaryServerInterceptors = append(unaryServerInterceptors,
+		interceptor.TracerServerUnaryInterceptor(opt.tracer))
+	streamServerInterceptors = append(streamServerInterceptors,
+		interceptor.TracerServerStreamInterceptor(opt.tracer))
+	// }
 	// limiter
 	if opt.limiter != nil {
 		opt.muxOptions = append(opt.muxOptions, mux.WithLimiter(opt.limiter))

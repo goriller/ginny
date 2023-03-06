@@ -68,7 +68,7 @@ func ChainHeader(ctx context.Context, w http.ResponseWriter, r *http.Request) co
 	for k, v := range otHeaders {
 		val := r.Header.Get(k)
 		if len(val) > 0 {
-			if v == RequestId {
+			if k == RequestIDHeader {
 				reqId = val
 			}
 			preTags.Set(v, val)
