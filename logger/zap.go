@@ -31,7 +31,7 @@ func init() {
 	cores := make([]zapcore.Core, 0, 1)
 	encoderCfg := zap.NewProductionEncoderConfig()
 	encoderCfg.TimeKey = "time"
-	encoderCfg.CallerKey = ""
+	encoderCfg.CallerKey = "caller"
 	encoderCfg.EncodeTime = zapcore.RFC3339NanoTimeEncoder
 	if logFilePath != "" {
 		fw := zapcore.AddSync(&lumberjack.Logger{
@@ -51,7 +51,11 @@ func init() {
 	}
 
 	core := zapcore.NewTee(cores...)
-	std = zap.New(core)
+	opt := []zap.Option{
+		zap.AddCaller(),
+		zap.AddCallerSkip(1),
+	}
+	std = zap.New(core, opt...)
 	zap.ReplaceGlobals(std)
 
 	graceful.AddCloser(func(ctx context.Context) error {
