@@ -8,7 +8,6 @@ require (
 	github.com/google/wire v0.5.0
 	github.com/goriller/ginny-util/graceful v0.0.0-20230329082818-d0cdc3cae4d9
 	github.com/goriller/ginny-util/ip v0.0.0-20230329082818-d0cdc3cae4d9
-	github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2 v2.0.0-rc.3
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.1-0.20200507082539-9abf3eb82b4a
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.2
