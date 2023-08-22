@@ -76,7 +76,7 @@ func withLogger(start time.Time, logger grpc_logging.Logger, r *http.Request, w 
 	if status != "" {
 		fields = append(fields, "status", status)
 	}
-	logger.With(fields...).Log(level, "finished call")
+	logger.Log(r.Context(), level, "finished call", fields...)
 }
 
 // getLoggingFields returns all fields from tags.
@@ -102,20 +102,20 @@ func getLoggingFields(start time.Time,
 func getLevel(status string, w http.ResponseWriter) (logLevel grpc_logging.Level) {
 	statusCode, err := strconv.Atoi(status)
 	if err != nil {
-		return grpc_logging.INFO
+		return grpc_logging.LevelInfo
 	}
 
 	if statusCode >= http.StatusInternalServerError {
 		if statusCode == http.StatusNotImplemented {
-			logLevel = grpc_logging.WARNING
+			logLevel = grpc_logging.LevelWarn
 		} else {
-			logLevel = grpc_logging.ERROR
+			logLevel = grpc_logging.LevelError
 		}
 	} else if statusCode >= http.StatusBadRequest &&
 		statusCode < http.StatusInternalServerError {
-		logLevel = grpc_logging.WARNING
+		logLevel = grpc_logging.LevelWarn
 	} else {
-		logLevel = grpc_logging.INFO
+		logLevel = grpc_logging.LevelInfo
 	}
 
 	return

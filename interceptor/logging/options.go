@@ -14,7 +14,7 @@ var (
 
 // PayloadDecision defines rules for enabling Request or Response logging
 type PayloadDecision struct {
-	Enable     logging.Decision
+	Enable     logging.LoggableEvent
 	Request    bool
 	Response   bool
 	ClearBytes bool
@@ -72,7 +72,7 @@ type Decider func(fullMethod string, err error) PayloadDecision
 // by default this if always true so all calls are logged
 func DefaultLoggingDeciderMethod(_ string, _ error) PayloadDecision {
 	return PayloadDecision{
-		Enable:   logging.LogFinishCall,
+		Enable:   logging.FinishCall,
 		Request:  false,
 		Response: false,
 	}
@@ -103,13 +103,13 @@ func DefaultCodeToLevel(code codes.Code) logging.Level {
 		switch code {
 		case codes.OK, codes.Canceled, codes.InvalidArgument, codes.NotFound, codes.AlreadyExists, codes.ResourceExhausted,
 			codes.FailedPrecondition, codes.Aborted, codes.OutOfRange, codes.PermissionDenied, codes.Unauthenticated:
-			return logging.INFO
+			return logging.LevelInfo
 		case codes.DeadlineExceeded, codes.Unavailable, codes.DataLoss, codes.Unimplemented:
-			return logging.WARNING
+			return logging.LevelWarn
 		case codes.Unknown, codes.Internal:
-			return logging.ERROR
+			return logging.LevelError
 		default:
-			return logging.WARNING
+			return logging.LevelWarn
 		}
 	}
 	for code >= 10 {
@@ -117,10 +117,10 @@ func DefaultCodeToLevel(code codes.Code) logging.Level {
 	}
 	switch code {
 	case statusOKPrefix:
-		return logging.INFO
+		return logging.LevelInfo
 	case statusBadRequestPrefix:
-		return logging.WARNING
+		return logging.LevelWarn
 	default:
-		return logging.ERROR
+		return logging.LevelError
 	}
 }

@@ -4,12 +4,12 @@ go 1.19
 
 require (
 	github.com/fsnotify/fsnotify v1.6.0
-	github.com/google/uuid v1.3.0
+	github.com/google/uuid v1.3.1
 	github.com/google/wire v0.5.0
 	github.com/goriller/ginny-util/graceful v0.0.0-20230329082818-d0cdc3cae4d9
 	github.com/goriller/ginny-util/ip v0.0.0-20230329082818-d0cdc3cae4d9
 	github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2 v2.0.0-rc.3
-	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.0-rc.3
+	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.0
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.1-0.20200507082539-9abf3eb82b4a
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.2
 	github.com/opentracing/opentracing-go v1.2.0
@@ -19,7 +19,7 @@ require (
 	go.uber.org/zap v1.25.0
 	golang.org/x/net v0.14.0
 	golang.org/x/time v0.3.0
-	google.golang.org/genproto/googleapis/api v0.0.0-20230815205213-6bfd019c3878
+	google.golang.org/genproto/googleapis/api v0.0.0-20230821184602-ccc8af3d0e93
 	google.golang.org/grpc v1.57.0
 	google.golang.org/protobuf v1.31.0
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1

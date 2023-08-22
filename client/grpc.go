@@ -11,8 +11,8 @@ import (
 
 	"github.com/goriller/ginny-util/graceful"
 	"github.com/goriller/ginny/interceptor"
-	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	"github.com/goriller/ginny/interceptor/logging"
+	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/timeout"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
@@ -151,12 +151,16 @@ func newClientConn(ctx context.Context, opt *ClientOptions) (*grpc.ClientConn, e
 	var streamInterceptor = []grpc.StreamClientInterceptor{}
 	// logger
 	if opt.logger != nil {
-		logger := grpc_zap.InterceptorLogger(opt.logger)
-		decider := func(fullMethodName string, err error) logging.Decision {
+		logger := logging.InterceptorLogger(opt.logger)
+		decider := func(fullMethodName string, err error) logging.PayloadDecision {
 			if strings.HasPrefix(fullMethodName, "/grpc.health.v1.Health/") {
-				return logging.NoLogCall
+				return logging.PayloadDecision{}
 			}
-			return logging.LogFinishCall
+			return logging.PayloadDecision{
+				Enable:   grpc_logging.FinishCall,
+				Request:  false,
+				Response: false,
+			}
 		}
 		unaryInterceptor = append(unaryInterceptor,
 			logging.UnaryClientInterceptor(logger, logging.WithDecider(decider)))
@@ -166,14 +170,14 @@ func newClientConn(ctx context.Context, opt *ClientOptions) (*grpc.ClientConn, e
 	// timeout
 	if opt.timeout > 0 {
 		unaryInterceptor = append(unaryInterceptor,
-			timeout.TimeoutUnaryClientInterceptor(opt.timeout))
+			timeout.UnaryClientInterceptor(opt.timeout))
 	}
 	// retry
 	if opt.retryTimes > 0 {
 		retryOpts := []grpc_retry.CallOption{
 			grpc_retry.WithMax(uint(opt.retryTimes)),
 			grpc_retry.WithCodes(codes.Unavailable),
-			grpc_retry.WithBackoff(func(_ uint) time.Duration {
+			grpc_retry.WithBackoff(func(_ context.Context, _ uint) time.Duration {
 				return time.Second
 			}),
 		}

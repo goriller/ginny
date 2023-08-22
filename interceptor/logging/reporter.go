@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/goriller/ginny/interceptor/tags"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"google.golang.org/grpc/status"
@@ -38,6 +37,7 @@ func (r *reportable) reporter(ctx context.Context, typ interceptors.GRPCType,
 	service string, method string, kind string,
 ) (interceptors.Reporter, context.Context) {
 	fields := commonFields(ctx, kind, service, method, typ)
+	logging.InjectFields(ctx, fields)
 	return &reporter{
 		ctx:             ctx,
 		typ:             typ,
@@ -45,7 +45,7 @@ func (r *reportable) reporter(ctx context.Context, typ interceptors.GRPCType,
 		method:          method,
 		startCallLogged: false,
 		opts:            r.opts,
-		logger:          r.logger.With(fields...),
+		logger:          r.logger,
 		kind:            kind,
 	}, ctx
 }
@@ -62,11 +62,11 @@ func commonFields(ctx context.Context, kind, service, method string, typ interce
 // PostCall implement
 func (c *reporter) PostCall(err error, duration time.Duration) {
 	switch shouldLog(c.opts.shouldLog, FullMethod(c.service, c.method), err).Enable {
-	case logging.LogFinishCall, logging.LogStartAndFinishCall:
+	case logging.FinishCall:
 		if errors.Is(err, io.EOF) {
 			err = nil
 		}
-		c.logMessage(c.logger, err, "finished call", duration)
+		c.logMessage(c.logger, err, "finished call", duration, nil)
 	default:
 		return
 	}
@@ -78,18 +78,19 @@ func (c *reporter) PostMsgSend(resp interface{}, err error, duration time.Durati
 		return
 	}
 	payloadDecision := shouldLog(c.opts.shouldLog, FullMethod(c.service, c.method), err)
+	fields := logging.Fields{}
 	if err == nil {
 		if payloadDecision.Response {
-			c.logger = c.logger.With("response_"+keyContent, bodyString(resp, payloadDecision.ClearBytes))
+			fields.AppendUnique(logging.Fields{"response_" + keyContent, bodyString(resp, payloadDecision.ClearBytes)})
 		}
 		if c.opts.responseFieldExtractorFunc != nil {
 			data := c.opts.responseFieldExtractorFunc(FullMethod(c.service, c.method), resp)
-			c.logger = c.logger.With(extractMap(data, "response_", payloadDecision.Response)...)
+			fields.AppendUnique(extractMap(data, "response_", payloadDecision.Response))
 		}
 	}
-	if payloadDecision.Enable == logging.LogStartAndFinishCall {
+	if payloadDecision.Enable == logging.PayloadSent {
 		c.startCallLogged = true
-		c.logMessage(c.logger, err, "started call", duration)
+		c.logMessage(c.logger, err, "started call", duration, fields)
 	}
 }
 
@@ -113,9 +114,7 @@ func bodyString(val interface{}, clearBytes bool) (logStr string) {
 
 func shouldLog(decider Decider, fullMethod string, err error) PayloadDecision {
 	if strings.HasPrefix(fullMethod, "/grpc.health.v1.Health/") {
-		return PayloadDecision{
-			Enable: logging.NoLogCall,
-		}
+		return PayloadDecision{}
 	}
 	return decider(fullMethod, err)
 }
@@ -129,34 +128,33 @@ func (c *reporter) PostMsgReceive(req interface{}, err error, duration time.Dura
 	if c.startCallLogged {
 		return
 	}
+	fields := logging.Fields{}
 	if c.opts.requestFieldExtractorFunc != nil {
 		if valMap := c.opts.requestFieldExtractorFunc(FullMethod(c.service, c.method), req); valMap != nil {
-			t := tags.Extract(c.ctx)
-			for k, v := range valMap {
-				t.Set("request."+k, v)
-			}
+			fields = logging.ExtractFields(c.ctx)
 		}
 	}
 	payloadDecision := shouldLog(c.opts.shouldLog, FullMethod(c.service, c.method), err)
 	if payloadDecision.Request && err == nil {
-		c.logger = c.logger.With(keyRequestContent, bodyString(req, payloadDecision.ClearBytes))
+		fields.AppendUnique(logging.Fields{keyRequestContent, bodyString(req, payloadDecision.ClearBytes)})
 	}
-	if payloadDecision.Enable == logging.LogStartAndFinishCall {
+	if payloadDecision.Enable == logging.PayloadReceived {
 		c.startCallLogged = true
-		c.logMessage(c.logger, err, "started call", duration)
+		c.logMessage(c.logger, err, "started call", duration, fields)
 	}
 }
 
-func (c *reporter) logMessage(logger logging.Logger, err error, msg string, duration time.Duration) {
-	logLevel := logging.INFO
+func (c *reporter) logMessage(logger logging.Logger, err error, msg string, duration time.Duration, fields logging.Fields) {
+	logLevel := logging.LevelInfo
 	if err != nil {
 		statusError, _ := status.FromError(err)
-		logger = logger.With("status", strconv.Itoa(int(statusError.Code())))
+		fields.AppendUnique(logging.Fields{"status", strconv.Itoa(int(statusError.Code()))})
 		msg = statusError.Message()
 		logLevel = c.opts.levelFunc(statusError.Code())
 	}
-	logger = logger.With(extractFields(tags.Extract(c.ctx), c.hasLoggingRequestContent)...)
-	logger.With("time_ms", fmt.Sprintf("%v", float32(duration.Nanoseconds()/1000)/1000)).Log(logLevel, msg)
+	fields.AppendUnique(extractFields(logging.ExtractFields(c.ctx), c.hasLoggingRequestContent))
+	fields.AppendUnique(logging.Fields{"time_ms", fmt.Sprintf("%v", float32(duration.Nanoseconds()/1000)/1000)})
+	logger.Log(c.ctx, logLevel, msg)
 }
 
 const keyContent = "content"
@@ -164,13 +162,15 @@ const keyContent = "content"
 var keyRequestContent = "request." + keyContent
 
 // extractFields returns all fields from tags.
-func extractFields(data tags.Tags, skipContentKey bool) logging.Fields {
-	var fields logging.Fields
-	for k, v := range data.Values() {
+func extractFields(data logging.Fields, skipContentKey bool) logging.Fields {
+	fields := logging.Fields{}
+	ts := data.Iterator()
+	for ts.Next() {
+		k, v := ts.At()
 		if skipContentKey && k == keyRequestContent {
 			continue
 		}
-		fields = append(fields, k, v)
+		fields = append(fields, logging.Fields{k, v})
 	}
 	return fields
 }

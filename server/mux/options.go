@@ -5,10 +5,10 @@ import (
 
 	"github.com/goriller/ginny/interceptor"
 	"github.com/goriller/ginny/interceptor/limit"
+	"github.com/goriller/ginny/interceptor/logging"
 	"github.com/goriller/ginny/middleware"
 	"github.com/goriller/ginny/server/mux/rewriter"
-	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	grpcLogging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	"github.com/opentracing/opentracing-go"
 	"go.uber.org/zap"
@@ -18,7 +18,7 @@ import (
 // MuxOption
 type MuxOption struct {
 	authFunc          interceptor.Authorize
-	logger            logging.Logger
+	logger            grpcLogging.Logger
 	tracer            opentracing.Tracer
 	limiter           *limit.Limiter
 	bodyMarshaler     runtime.Marshaler
@@ -149,7 +149,7 @@ func WithMiddleWares(middleWares ...middleware.MuxMiddleware) Optional {
 func fullOptions(logger *zap.Logger,
 	opts ...Optional) (opt *MuxOption) {
 	o := evaluateOptions(opts)
-	o.logger = grpc_zap.InterceptorLogger(logger)
+	o.logger = logging.InterceptorLogger(logger)
 	if o.errorHandler == nil {
 		o.errorHandler = defaultErrorHandler
 	}

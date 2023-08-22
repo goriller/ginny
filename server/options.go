@@ -13,7 +13,6 @@ import (
 	"github.com/goriller/ginny/interceptor/logging"
 	"github.com/goriller/ginny/interceptor/tags"
 	"github.com/goriller/ginny/server/mux"
-	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
 	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/validator"
@@ -270,7 +269,7 @@ func fullOptions(logger *zap.Logger,
 	opts ...Option) (opt *options) {
 	opt = evaluateOptions(opts)
 	if opt.logger == nil {
-		opt.logger = grpc_zap.InterceptorLogger(logger)
+		opt.logger = logging.InterceptorLogger(logger)
 	}
 
 	muxLoggingOpts := []logging.Option{}
@@ -288,23 +287,21 @@ func fullOptions(logger *zap.Logger,
 	}
 
 	unaryServerInterceptors := []grpc.UnaryServerInterceptor{
-		tags.UnaryServerInterceptor(),
 		grpc_prometheus.UnaryServerInterceptor,
 		logging.UnaryServerInterceptor(
 			opt.logger,
 			muxLoggingOpts...,
 		),
-		validator.UnaryServerInterceptor(false),
+		validator.UnaryServerInterceptor(validator.WithFailFast()),
 	}
 
 	streamServerInterceptors := []grpc.StreamServerInterceptor{
-		tags.StreamServerInterceptor(),
 		grpc_prometheus.StreamServerInterceptor,
 		logging.StreamServerInterceptor(
 			opt.logger,
 			muxLoggingOpts...,
 		),
-		validator.StreamServerInterceptor(false),
+		validator.StreamServerInterceptor(validator.WithFailFast()),
 	}
 
 	// tracer
