@@ -3,7 +3,7 @@ package limit
 import (
 	"context"
 
-	"github.com/goriller/ginny/interceptor/tags"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -36,7 +36,7 @@ func StreamServerInterceptor(limiter *Limiter) grpc.StreamServerInterceptor {
 }
 
 func limit(ctx context.Context, fullMethod string, limiter *Limiter) error {
-	ctxTagValues := tags.Extract(ctx).Values()
+	ctxTagValues := logging.ExtractFields(ctx)
 	lv := limiter.Config.MatchMap(fullMethod, ctxTagValues)
 	if lv.Quota == Block {
 		return status.Errorf(codes.Aborted, "%s is aborted for %s", fullMethod, lv.Message)

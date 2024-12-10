@@ -4,7 +4,6 @@ import (
 	"context"
 	"net"
 
-	"github.com/goriller/ginny/interceptor/tags"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"google.golang.org/grpc"
@@ -32,12 +31,11 @@ func (r *reportable) ServerReporter(ctx context.Context, meta interceptors.CallM
 }
 
 func newTagsForCtx(ctx context.Context) context.Context {
-	t := tags.NewTags()
 	if peer, ok := peer.FromContext(ctx); ok {
 		addrHost, _, err := net.SplitHostPort(peer.Addr.String())
 		if err == nil {
-			t.Set("ip", addrHost)
+			ctx = logging.InjectLogField(ctx, "ip", addrHost)
 		}
 	}
-	return tags.SetInContext(ctx, t)
+	return ctx
 }

@@ -11,9 +11,7 @@ import (
 	"github.com/goriller/ginny/interceptor"
 	"github.com/goriller/ginny/interceptor/limit"
 	"github.com/goriller/ginny/interceptor/logging"
-	"github.com/goriller/ginny/interceptor/tags"
 	"github.com/goriller/ginny/server/mux"
-	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
 	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/validator"
@@ -270,31 +268,33 @@ func fullOptions(logger *zap.Logger,
 	opts ...Option) (opt *options) {
 	opt = evaluateOptions(opts)
 	if opt.logger == nil {
-		opt.logger = grpc_zap.InterceptorLogger(logger)
+		opt.logger = logging.InterceptorLogger(logger)
 	}
 
-	muxLoggingOpts := []logging.Option{}
-	if opt.loggingDecider != nil {
-		muxLoggingOpts = append(muxLoggingOpts,
-			logging.WithDecider(opt.loggingDecider))
-	}
-	if opt.requestFieldExtractorFunc != nil {
-		muxLoggingOpts = append(muxLoggingOpts,
-			logging.WithRequestFieldExtractorFunc(opt.requestFieldExtractorFunc))
-	}
-	if opt.responseFieldExtractorFunc != nil {
-		muxLoggingOpts = append(muxLoggingOpts,
-			logging.WithResponseFieldExtractorFunc(opt.responseFieldExtractorFunc))
-	}
+	muxLoggingOpts := []grpc_logging.Option{}
+	grpc_logging.UnaryClientInterceptor(opt.logger)
+	// if opt.loggingDecider != nil {
+	// 	muxLoggingOpts = append(muxLoggingOpts,
+	// 		grpc_logging.WithDecider(opt.loggingDecider))
+	// }
+	// if opt.requestFieldExtractorFunc != nil {
+	// 	muxLoggingOpts = append(muxLoggingOpts,
+	// 		logging.WithRequestFieldExtractorFunc(opt.requestFieldExtractorFunc))
+	// }
+	// if opt.responseFieldExtractorFunc != nil {
+	// 	muxLoggingOpts = append(muxLoggingOpts,
+	// 		logging.WithResponseFieldExtractorFunc(opt.responseFieldExtractorFunc))
+	// }
 
 	unaryServerInterceptors := []grpc.UnaryServerInterceptor{
 		tags.UnaryServerInterceptor(),
 		grpc_prometheus.UnaryServerInterceptor,
+		grpc_logging.UnaryServerInterceptor(opt.logger, muxLoggingOpts...),
 		logging.UnaryServerInterceptor(
 			opt.logger,
 			muxLoggingOpts...,
 		),
-		validator.UnaryServerInterceptor(false),
+		validator.UnaryServerInterceptor(validator.WithFailFast()),
 	}
 
 	streamServerInterceptors := []grpc.StreamServerInterceptor{
@@ -304,7 +304,7 @@ func fullOptions(logger *zap.Logger,
 			opt.logger,
 			muxLoggingOpts...,
 		),
-		validator.StreamServerInterceptor(false),
+		validator.StreamServerInterceptor(validator.WithFailFast()),
 	}
 
 	// tracer

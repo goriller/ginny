@@ -6,13 +6,12 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/goriller/ginny-util/graceful"
 	"github.com/goriller/ginny/interceptor"
-	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	"github.com/goriller/ginny/interceptor/logging"
+	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/timeout"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
@@ -151,29 +150,23 @@ func newClientConn(ctx context.Context, opt *ClientOptions) (*grpc.ClientConn, e
 	var streamInterceptor = []grpc.StreamClientInterceptor{}
 	// logger
 	if opt.logger != nil {
-		logger := grpc_zap.InterceptorLogger(opt.logger)
-		decider := func(fullMethodName string, err error) logging.Decision {
-			if strings.HasPrefix(fullMethodName, "/grpc.health.v1.Health/") {
-				return logging.NoLogCall
-			}
-			return logging.LogFinishCall
-		}
+		logger := logging.InterceptorLogger(opt.logger)
 		unaryInterceptor = append(unaryInterceptor,
-			logging.UnaryClientInterceptor(logger, logging.WithDecider(decider)))
+			grpc_logging.UnaryClientInterceptor(logger, grpc_logging.WithLogOnEvents(grpc_logging.FinishCall)))
 		streamInterceptor = append(streamInterceptor,
-			logging.StreamClientInterceptor(logger, logging.WithDecider(decider)))
+			grpc_logging.StreamClientInterceptor(logger, grpc_logging.WithLogOnEvents(grpc_logging.FinishCall)))
 	}
 	// timeout
 	if opt.timeout > 0 {
 		unaryInterceptor = append(unaryInterceptor,
-			timeout.TimeoutUnaryClientInterceptor(opt.timeout))
+			timeout.UnaryClientInterceptor(opt.timeout))
 	}
 	// retry
 	if opt.retryTimes > 0 {
 		retryOpts := []grpc_retry.CallOption{
 			grpc_retry.WithMax(uint(opt.retryTimes)),
 			grpc_retry.WithCodes(codes.Unavailable),
-			grpc_retry.WithBackoff(func(_ uint) time.Duration {
+			grpc_retry.WithBackoff(func(_ context.Context, _ uint) time.Duration {
 				return time.Second
 			}),
 		}

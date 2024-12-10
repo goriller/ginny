@@ -3,7 +3,6 @@ package logger
 import (
 	"context"
 
-	"github.com/goriller/ginny/interceptor/tags"
 	"go.uber.org/zap"
 )
 

@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/goriller/ginny/interceptor/tags"
 	middleware "github.com/grpc-ecosystem/go-grpc-middleware/v2"
 	"github.com/opentracing/opentracing-go"
 	"github.com/opentracing/opentracing-go/ext"
