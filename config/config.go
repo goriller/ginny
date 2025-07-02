@@ -3,7 +3,6 @@ package config
 import (
 	"bytes"
 	"flag"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"strings"
@@ -79,7 +78,7 @@ func loadConfig(v *viper.Viper) error {
 	if remoteConfig != "" {
 		return loadConfigFromRemote(v, remoteConfig)
 	}
-	data, err := ioutil.ReadFile(v.ConfigFileUsed())
+	data, err := os.ReadFile(v.ConfigFileUsed())
 	if err != nil {
 		return err
 	}

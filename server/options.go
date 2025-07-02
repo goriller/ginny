@@ -11,6 +11,7 @@ import (
 	"github.com/goriller/ginny/interceptor"
 	"github.com/goriller/ginny/interceptor/limit"
 	"github.com/goriller/ginny/interceptor/logging"
+	"github.com/goriller/ginny/interceptor/tags"
 	"github.com/goriller/ginny/server/mux"
 	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/recovery"
