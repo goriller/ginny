@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/goriller/ginny/interceptor/tags"
 	"github.com/goriller/ginny/server/mux/rewriter"
 	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -37,7 +38,7 @@ func RecoverMiddleWare(logger grpc_logging.Logger, bodyMarshaler,
 				BodyWriter: rewriter.DefaultBodyWriter(bodyMarshaler, errorMarshaler,
 					withoutHTTPStatus),
 			}
-			ctx := tags.SetInContext(r.Context(), tags.NewTags())
+			ctx := tags.InjectIntoContext(r.Context(), tags.NewTags())
 			r = r.WithContext(ctx)
 			defer func(wt http.ResponseWriter, req *http.Request) {
 				if recoverPanic {

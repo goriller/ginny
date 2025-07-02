@@ -142,17 +142,22 @@ type Getter interface {
 	Get(key string) string
 }
 
-// mapGetter getter from logging.Ite
+// mapGetter getter from logging.Fields
 type mapGetter logging.Fields
 
 // Get implement map value
 func (m mapGetter) Get(key string) string {
-	i := m.Iterator()
+	i := logging.Fields(m).Iterator()
 	for i.Next() {
-		k, _ := i.At()
-		existing[k] = struct{}{}
+		k, v := i.At()
+		if k == key {
+			if str, ok := v.(string); ok {
+				return str
+			}
+			return fmt.Sprintf("%v", v)
+		}
 	}
-	return m[key]
+	return ""
 }
 
 // headerGetter map implements for header

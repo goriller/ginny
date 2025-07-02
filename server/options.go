@@ -274,16 +274,19 @@ func fullOptions(logger *zap.Logger,
 
 	muxLoggingOpts := []grpc_logging.Option{}
 	grpc_logging.UnaryClientInterceptor(opt.logger)
+
+	// Create options for local logging package
+	localLoggingOpts := []logging.Option{}
 	// if opt.loggingDecider != nil {
-	// 	muxLoggingOpts = append(muxLoggingOpts,
-	// 		grpc_logging.WithDecider(opt.loggingDecider))
+	// 	localLoggingOpts = append(localLoggingOpts,
+	// 		logging.WithDecider(opt.loggingDecider))
 	// }
 	// if opt.requestFieldExtractorFunc != nil {
-	// 	muxLoggingOpts = append(muxLoggingOpts,
+	// 	localLoggingOpts = append(localLoggingOpts,
 	// 		logging.WithRequestFieldExtractorFunc(opt.requestFieldExtractorFunc))
 	// }
 	// if opt.responseFieldExtractorFunc != nil {
-	// 	muxLoggingOpts = append(muxLoggingOpts,
+	// 	localLoggingOpts = append(localLoggingOpts,
 	// 		logging.WithResponseFieldExtractorFunc(opt.responseFieldExtractorFunc))
 	// }
 
@@ -293,7 +296,7 @@ func fullOptions(logger *zap.Logger,
 		grpc_logging.UnaryServerInterceptor(opt.logger, muxLoggingOpts...),
 		logging.UnaryServerInterceptor(
 			opt.logger,
-			muxLoggingOpts...,
+			localLoggingOpts...,
 		),
 		validator.UnaryServerInterceptor(validator.WithFailFast()),
 	}
@@ -303,7 +306,7 @@ func fullOptions(logger *zap.Logger,
 		grpc_prometheus.StreamServerInterceptor,
 		logging.StreamServerInterceptor(
 			opt.logger,
-			muxLoggingOpts...,
+			localLoggingOpts...,
 		),
 		validator.StreamServerInterceptor(validator.WithFailFast()),
 	}

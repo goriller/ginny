@@ -3,6 +3,7 @@ package logger
 import (
 	"context"
 
+	"github.com/goriller/ginny/interceptor/tags"
 	"go.uber.org/zap"
 )
 
@@ -52,7 +53,7 @@ func WithContext(ctx context.Context) StdLogger {
 	fields := make([]zap.Field, 0)
 	ts := tags.Extract(ctx).Values()
 	for k, v := range ts {
-		fields = append(fields, zap.String(k, v))
+		fields = append(fields, zap.String(k, v.(string)))
 	}
 	return std.With(fields...)
 }

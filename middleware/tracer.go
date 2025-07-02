@@ -79,6 +79,6 @@ func ChainHeader(ctx context.Context, w http.ResponseWriter, r *http.Request) co
 	}
 	preTags.Set(RequestId, reqId)
 	w.Header().Set(RequestIDHeader, reqId)
-	context := tags.SetInContext(ctx, preTags)
+	context := tags.InjectIntoContext(ctx, preTags)
 	return context
 }

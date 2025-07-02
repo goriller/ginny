@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strconv"
 
 	"github.com/goriller/ginny/errs"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -122,9 +121,11 @@ func WriteHTTPErrorResponse(w http.ResponseWriter, r *http.Request, err error) {
 		s = status.New(codes.Unknown, err.Error())
 	}
 	w.Header().Set("Content-Type", "application/json")
-	preTags := grpc_logging. //tags.Extract(r.Context())
-					preTags.Set("code", strconv.Itoa(int(s.Code())))
-	preTags.Set("message", s.Message())
+
+	// TODO: Add logging tags if needed
+	// preTags := tags.Extract(r.Context())
+	// preTags.Set("code", strconv.Itoa(int(s.Code())))
+	// preTags.Set("message", s.Message())
 
 	if wt, ok := w.(*ResponseWriter); ok {
 		wt.Status = s
