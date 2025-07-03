@@ -39,6 +39,7 @@ type ClientOptions struct {
 	logger          *zap.Logger
 	tracer          opentracing.Tracer
 	grpcDialOptions []grpc.DialOption
+	connPool        *ConnPool // 新增连接池支持
 }
 
 // ClientOptional
@@ -102,6 +103,13 @@ func WithDialOptions(options ...grpc.DialOption) ClientOptional {
 	}
 }
 
+// WithConnectionPool
+func WithConnectionPool(pool *ConnPool) ClientOptional {
+	return func(o *ClientOptions) {
+		o.connPool = pool
+	}
+}
+
 // BindMetadataForContext
 func BindMetadataForContext(ctx context.Context, data map[string]string) context.Context {
 	headersIn, _ := metadata.FromIncomingContext(ctx)
@@ -144,8 +152,38 @@ func NewClient(ctx context.Context, uri string, pbNewXxxClient interface{},
 	return client, nil
 }
 
+// NewClientWithPool 使用连接池创建客户端
+func NewClientWithPool(ctx context.Context, pool *ConnPool, pbNewXxxClient interface{}) (interface{}, error) {
+	t := reflect.TypeOf(pbNewXxxClient)
+	var isGRPCCreator bool
+	if t.NumOut() == 1 && t.NumIn() == 1 {
+		if t.In(0) == reflect.TypeOf((*grpc.ClientConnInterface)(nil)).Elem() {
+			isGRPCCreator = true
+		}
+	}
+	if !isGRPCCreator {
+		return nil, fmt.Errorf("function %s is not grpc creator", pbNewXxxClient)
+	}
+
+	// 从连接池获取连接
+	conn, err := pool.GetPooled(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get connection from pool error: %w", err)
+	}
+
+	ret := reflect.ValueOf(pbNewXxxClient).Call([]reflect.Value{reflect.ValueOf(conn)})
+	client := ret[0].Interface()
+
+	return client, nil
+}
+
 // newClientConn
 func newClientConn(ctx context.Context, opt *ClientOptions) (*grpc.ClientConn, error) {
+	// 如果配置了连接池，直接从池中获取连接
+	if opt.connPool != nil {
+		return opt.connPool.Get(ctx)
+	}
+
 	var unaryInterceptor = []grpc.UnaryClientInterceptor{}
 	var streamInterceptor = []grpc.StreamClientInterceptor{}
 	// logger
