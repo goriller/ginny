@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -37,7 +38,7 @@ func RecoverMiddleWare(logger grpc_logging.Logger, bodyMarshaler,
 				BodyWriter: rewriter.DefaultBodyWriter(bodyMarshaler, errorMarshaler,
 					withoutHTTPStatus),
 			}
-			ctx := tags.SetInContext(r.Context(), tags.NewTags())
+			ctx := tags.InjectIntoContext(r.Context(), tags.NewTags())
 			r = r.WithContext(ctx)
 			defer func(wt http.ResponseWriter, req *http.Request) {
 				if recoverPanic {
@@ -46,7 +47,7 @@ func RecoverMiddleWare(logger grpc_logging.Logger, bodyMarshaler,
 						tags.Extract(r.Context()).Set("stacktrace", stack)
 						err := status.Errorf(codes.Internal, "%s", rec)
 						rewriter.WriteHTTPErrorResponse(wt, req, err)
-						withLogger(start, logger, req, wt)
+						withLogger(ctx, start, logger, req, wt)
 					}
 				}
 			}(writer, r)
@@ -60,13 +61,13 @@ func RecoverMiddleWare(logger grpc_logging.Logger, bodyMarshaler,
 			h.ServeHTTP(writer, r)
 
 			// logger
-			withLogger(start, logger, r, writer)
+			withLogger(ctx, start, logger, r, writer)
 		}
 	}
 }
 
 // withLogger
-func withLogger(start time.Time, logger grpc_logging.Logger, r *http.Request, w http.ResponseWriter) {
+func withLogger(ctx context.Context, start time.Time, logger grpc_logging.Logger, r *http.Request, w http.ResponseWriter) {
 	if logger == nil {
 		return
 	}
@@ -76,7 +77,7 @@ func withLogger(start time.Time, logger grpc_logging.Logger, r *http.Request, w 
 	if status != "" {
 		fields = append(fields, "status", status)
 	}
-	logger.With(fields...).Log(level, "finished call")
+	logger.Log(ctx, level, "finished call", fields...)
 }
 
 // getLoggingFields returns all fields from tags.
@@ -102,20 +103,20 @@ func getLoggingFields(start time.Time,
 func getLevel(status string, w http.ResponseWriter) (logLevel grpc_logging.Level) {
 	statusCode, err := strconv.Atoi(status)
 	if err != nil {
-		return grpc_logging.INFO
+		return grpc_logging.LevelInfo
 	}
 
 	if statusCode >= http.StatusInternalServerError {
 		if statusCode == http.StatusNotImplemented {
-			logLevel = grpc_logging.WARNING
+			logLevel = grpc_logging.LevelWarn
 		} else {
-			logLevel = grpc_logging.ERROR
+			logLevel = grpc_logging.LevelError
 		}
 	} else if statusCode >= http.StatusBadRequest &&
 		statusCode < http.StatusInternalServerError {
-		logLevel = grpc_logging.WARNING
+		logLevel = grpc_logging.LevelWarn
 	} else {
-		logLevel = grpc_logging.INFO
+		logLevel = grpc_logging.LevelInfo
 	}
 
 	return

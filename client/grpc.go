@@ -6,13 +6,12 @@ import (
 	"net/url"
 	"reflect"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/goriller/ginny-util/graceful"
 	"github.com/goriller/ginny/interceptor"
-	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/providers/zap/v2"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
+	"github.com/goriller/ginny/interceptor/logging"
+	grpc_logging "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	grpc_retry "github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/retry"
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/timeout"
 	grpc_prometheus "github.com/grpc-ecosystem/go-grpc-prometheus"
@@ -40,6 +39,7 @@ type ClientOptions struct {
 	logger          *zap.Logger
 	tracer          opentracing.Tracer
 	grpcDialOptions []grpc.DialOption
+	connPool        *ConnPool // 新增连接池支持
 }
 
 // ClientOptional
@@ -103,6 +103,13 @@ func WithDialOptions(options ...grpc.DialOption) ClientOptional {
 	}
 }
 
+// WithConnectionPool
+func WithConnectionPool(pool *ConnPool) ClientOptional {
+	return func(o *ClientOptions) {
+		o.connPool = pool
+	}
+}
+
 // BindMetadataForContext
 func BindMetadataForContext(ctx context.Context, data map[string]string) context.Context {
 	headersIn, _ := metadata.FromIncomingContext(ctx)
@@ -145,35 +152,59 @@ func NewClient(ctx context.Context, uri string, pbNewXxxClient interface{},
 	return client, nil
 }
 
+// NewClientWithPool 使用连接池创建客户端
+func NewClientWithPool(ctx context.Context, pool *ConnPool, pbNewXxxClient interface{}) (interface{}, error) {
+	t := reflect.TypeOf(pbNewXxxClient)
+	var isGRPCCreator bool
+	if t.NumOut() == 1 && t.NumIn() == 1 {
+		if t.In(0) == reflect.TypeOf((*grpc.ClientConnInterface)(nil)).Elem() {
+			isGRPCCreator = true
+		}
+	}
+	if !isGRPCCreator {
+		return nil, fmt.Errorf("function %s is not grpc creator", pbNewXxxClient)
+	}
+
+	// 从连接池获取连接
+	conn, err := pool.GetPooled(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("get connection from pool error: %w", err)
+	}
+
+	ret := reflect.ValueOf(pbNewXxxClient).Call([]reflect.Value{reflect.ValueOf(conn)})
+	client := ret[0].Interface()
+
+	return client, nil
+}
+
 // newClientConn
 func newClientConn(ctx context.Context, opt *ClientOptions) (*grpc.ClientConn, error) {
+	// 如果配置了连接池，直接从池中获取连接
+	if opt.connPool != nil {
+		return opt.connPool.Get(ctx)
+	}
+
 	var unaryInterceptor = []grpc.UnaryClientInterceptor{}
 	var streamInterceptor = []grpc.StreamClientInterceptor{}
 	// logger
 	if opt.logger != nil {
-		logger := grpc_zap.InterceptorLogger(opt.logger)
-		decider := func(fullMethodName string, err error) logging.Decision {
-			if strings.HasPrefix(fullMethodName, "/grpc.health.v1.Health/") {
-				return logging.NoLogCall
-			}
-			return logging.LogFinishCall
-		}
+		logger := logging.InterceptorLogger(opt.logger)
 		unaryInterceptor = append(unaryInterceptor,
-			logging.UnaryClientInterceptor(logger, logging.WithDecider(decider)))
+			grpc_logging.UnaryClientInterceptor(logger, grpc_logging.WithLogOnEvents(grpc_logging.FinishCall)))
 		streamInterceptor = append(streamInterceptor,
-			logging.StreamClientInterceptor(logger, logging.WithDecider(decider)))
+			grpc_logging.StreamClientInterceptor(logger, grpc_logging.WithLogOnEvents(grpc_logging.FinishCall)))
 	}
 	// timeout
 	if opt.timeout > 0 {
 		unaryInterceptor = append(unaryInterceptor,
-			timeout.TimeoutUnaryClientInterceptor(opt.timeout))
+			timeout.UnaryClientInterceptor(opt.timeout))
 	}
 	// retry
 	if opt.retryTimes > 0 {
 		retryOpts := []grpc_retry.CallOption{
 			grpc_retry.WithMax(uint(opt.retryTimes)),
 			grpc_retry.WithCodes(codes.Unavailable),
-			grpc_retry.WithBackoff(func(_ uint) time.Duration {
+			grpc_retry.WithBackoff(func(_ context.Context, _ uint) time.Duration {
 				return time.Second
 			}),
 		}

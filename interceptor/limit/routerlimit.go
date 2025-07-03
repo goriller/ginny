@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 )
 
 // RouterLimit 路由频次限制
@@ -126,7 +128,7 @@ type KV struct {
 }
 
 // MatchMap 匹配Map类型
-func (r *RouterLimit) MatchMap(path string, data map[string]string) *LimitValue {
+func (r *RouterLimit) MatchMap(path string, data logging.Fields) *LimitValue {
 	return r.Match(path, mapGetter(data))
 }
 
@@ -140,12 +142,22 @@ type Getter interface {
 	Get(key string) string
 }
 
-// mapGetter map implements for map
-type mapGetter map[string]string
+// mapGetter getter from logging.Fields
+type mapGetter logging.Fields
 
 // Get implement map value
 func (m mapGetter) Get(key string) string {
-	return m[key]
+	i := logging.Fields(m).Iterator()
+	for i.Next() {
+		k, v := i.At()
+		if k == key {
+			if str, ok := v.(string); ok {
+				return str
+			}
+			return fmt.Sprintf("%v", v)
+		}
+	}
+	return ""
 }
 
 // headerGetter map implements for header

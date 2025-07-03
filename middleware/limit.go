@@ -32,7 +32,9 @@ func LimitMiddleWare(limiter *limit.Limiter) MuxMiddleware {
 			ctxTags := tags.Extract(ctx)
 			ctxTagsValues := ctxTags.Values()
 			if len(ctxTagsValues) > 0 {
-				lv = limiter.Config.MatchMap(r.URL.Path, ctxTagsValues)
+				// Convert map to logging.Fields
+				fields := ctxTags.ToLoggingFields()
+				lv = limiter.Config.MatchMap(r.URL.Path, fields)
 				ctxTags.Set("rate_limit", lv.Key)
 			} else {
 				lv = limiter.Config.MatchHeader(r.URL.Path, r.Header)
