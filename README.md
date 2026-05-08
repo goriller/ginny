@@ -1,4 +1,4 @@
-# Ginny v2
+# Ginny
 
 **Schema-driven Go RPC framework built on ConnectRPC.**  
 **基于 ConnectRPC 的 Schema 驱动 Go RPC 框架。**
