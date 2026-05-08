@@ -1,0 +1,13 @@
+version: v2
+modules:
+  - path: proto
+    name: buf.build/goriller/ginny
+lint:
+  use:
+    - STANDARD
+    - RPC_NO_SERVER_STREAMING
+  except:
+    - RPC_NO_SERVER_STREAMING
+breaking:
+  use:
+    - FILE
