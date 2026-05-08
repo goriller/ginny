@@ -1,1 +1,0 @@
-# Programming assistant scripts package

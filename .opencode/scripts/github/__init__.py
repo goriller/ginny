@@ -1,1 +1,0 @@
-# GitHub learning scripts package
